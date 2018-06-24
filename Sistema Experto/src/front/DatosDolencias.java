@@ -175,7 +175,7 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		cmbzona = new JComboBox<String>();
 		cmbzona.setEditable(false);
 		cmbzona.addActionListener(this);
-		DefaultComboBoxModel defaultComboBoxModelzona = new DefaultComboBoxModel();
+		DefaultComboBoxModel<String> defaultComboBoxModelzona = new DefaultComboBoxModel<String>();
 		cmbzona.setModel(defaultComboBoxModelzona);
 		
 		if (esPrimeraDolencia ) {
@@ -270,7 +270,7 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		cmborigen_dolor = new JComboBox<String>();
 		cmborigen_dolor.setEditable(false);
 		cmborigen_dolor.addActionListener(this);
-		DefaultComboBoxModel defaultComboBoxModelcmborigen_dolor = new DefaultComboBoxModel();
+		DefaultComboBoxModel<String> defaultComboBoxModelcmborigen_dolor = new DefaultComboBoxModel<String>();
 		cmborigen_dolor.setModel(defaultComboBoxModelcmborigen_dolor);
 		
 		defaultComboBoxModelcmborigen_dolor.addElement("Motivo Desconocido");
@@ -510,7 +510,7 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 			cmbritmo_evacuatorio = new JComboBox<String>();
 			cmbritmo_evacuatorio.setEditable(false);
 			cmbritmo_evacuatorio.addActionListener(this);
-			DefaultComboBoxModel defaultComboBoxModelcmbritmo_evacuatorio = new DefaultComboBoxModel();
+			DefaultComboBoxModel<String> defaultComboBoxModelcmbritmo_evacuatorio = new DefaultComboBoxModel<String>();
 			cmbritmo_evacuatorio.setModel(defaultComboBoxModelcmbritmo_evacuatorio);
 			
 			defaultComboBoxModelcmbritmo_evacuatorio.addElement("Normal");
@@ -909,7 +909,7 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 			  
 			    jOptionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
 				jOptionPane.setOptionType(JOptionPane.YES_NO_OPTION);
-				int jOptionResult = jOptionPane.showOptionDialog(frame, "¿El paciente presenta alguna otra dolencia?", "Dolencia adicional", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
+				int jOptionResult = JOptionPane.showOptionDialog(frame, "¿El paciente presenta alguna otra dolencia?", "Dolencia adicional", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
 				
 				if ( jOptionResult == JOptionPane.YES_OPTION) {
 					/*
@@ -1014,7 +1014,7 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		
 		if (resultado == false) {
 			jOptionPane.setMessageType(JOptionPane.ERROR_MESSAGE);
-			jOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
+			JOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
 		}
 		return resultado;
 	}

@@ -4,10 +4,7 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -19,8 +16,10 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.xml.stream.events.EndDocument;
 
-import model.Consulta;
+
 import model.Paciente;
+
+import back.ModelManager;
 
 
 
@@ -48,8 +47,7 @@ public class SistemaDiagnostico extends JPanel implements ActionListener{
 	public static final int id_estudio_rmn = 1;
 	
 	protected static JFrame frame;
-	
-	public static Consulta consulta;
+
 	
 	public JLabel lbl_titulo;
 	
@@ -81,8 +79,6 @@ public class SistemaDiagnostico extends JPanel implements ActionListener{
 	public SistemaDiagnostico () {
 		
 		setLayout(null);
-		
-		consulta = new Consulta();
 		
 		jOptionPane = new JOptionPane();
 		
@@ -168,14 +164,15 @@ public class SistemaDiagnostico extends JPanel implements ActionListener{
 	
 	public static void main(String[] args) {
 
-	        //Schedule a job for the event-dispatching thread:
-	        //creating and showing this application's GUI.
-	        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+        //Schedule a job for the event-dispatching thread:
+        //creating and showing this application's GUI.
+        javax.swing.SwingUtilities.invokeLater(
+    		new Runnable() {
 	            public void run() {
 	                createAndShowGUI();
 	            }
-	        });			
-		}
+	        });
+	}
 	
     private static void createAndShowGUI() {
     	
@@ -213,6 +210,7 @@ public class SistemaDiagnostico extends JPanel implements ActionListener{
 		// TODO Auto-generated method stub
 		
 		if ( arg0.getSource() == btSiguiente ) {
+			limpiarValores();
 			if (validar()) {
 				btSiguiente();
 			}
@@ -221,18 +219,26 @@ public class SistemaDiagnostico extends JPanel implements ActionListener{
 	
 	private void btSiguiente() {
 		
-		String sexo;
+		int dni = Integer.parseInt( this.tld_dni.getText() );
+		int id_paciente = dni;		// TODO: change this by incremented value
+		String nombre = this.tld_nombre.getText();
+		String apellido = this.tld_apellido.getText();
+		int edad = Integer.parseInt( this.tld_edad.getText() );
+		String sexo = (rdbFemenino.isSelected())? Paciente.SEXO_FEMENINO: Paciente.SEXO_MASCULINO;
 		
-		if (rdbFemenino.isSelected()) {
-			sexo = Paciente.SEXO_FEMENINO;
-		}else {
-			sexo = Paciente.SEXO_MASCULINO;
-		}
-		
-		consulta.GenerarPaciente(id_paciente, Integer.parseInt(tld_dni.getText()) , tld_nombre.getText(), tld_apellido.getText(), Integer.parseInt(tld_edad.getText()), sexo );
-		
+		ModelManager.c.GenerarPaciente(id_paciente, dni, nombre, apellido, edad, sexo);
+
 		DatosDolencias datosDolencias = new DatosDolencias(frame, true);
 	
+	}
+	
+	public void limpiarValores() {
+		
+		// Si se ingresa el DNI en formato "12.345.678" en vez de "12345678"
+		String dni = this.tld_dni.getText();
+		dni = String.join("", dni.split("\\."));	// want to filter ".", regex is "\.", string is "\\."
+		this.tld_dni.setText(dni);
+		
 	}
 	
 	public boolean validar() {
@@ -271,7 +277,7 @@ public class SistemaDiagnostico extends JPanel implements ActionListener{
 		
 		if (resultado == false) {
 			jOptionPane.setMessageType(JOptionPane.ERROR_MESSAGE);
-			jOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
+			JOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
 		}
 		return resultado;
 	}
