@@ -10,8 +10,8 @@ public class Paciente {
 	public String apellido;
 	public Integer edad;
 	public String sexo;
-	public static final String SEXO_MASCULINO = "Masculino";
-	public static final String SEXO_FEMENINO = "Femenino";
+	public static final String SEXO_MASCULINO = "masculino";
+	public static final String SEXO_FEMENINO = "femenino";
 	
 	public Date ultima_modificacion;// (de cuando fue guardado el perfil de paciente)
 	

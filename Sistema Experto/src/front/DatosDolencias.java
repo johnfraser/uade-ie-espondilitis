@@ -19,6 +19,9 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
+import model.Consulta;
+import model.Dolor;
+
 public class DatosDolencias extends JPanel implements WindowListener, ActionListener{
 	
 	protected static JFrame frame;
@@ -100,6 +103,7 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		this.esPrimeraDolencia = esPrimeraDolencia;
 		
 		jOptionPane = new JOptionPane();
+		
 		
 		setLayout(null);
 		
@@ -685,7 +689,9 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		  if (estadoCarga) {
 
 			  if ( arg0.getSource() == btSiguiente) {
-				  btSiguiente();
+				  if (validar()) {
+					  btSiguiente();
+				  }
 			  }
 
 			  if ( arg0.getSource() == btAtras) {
@@ -739,6 +745,163 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 	  
 	
 	private void btSiguiente() {
+			
+		String zona;
+		String origen_dolor;
+		String lodespiertanoche;
+		String mejoria;
+		int edad_inicio_dolor;
+		int meses_persistencia;
+		String aspecto;
+		String inflamacion;
+		String ritmo_evacuatorio;
+		
+		Object selectedItem;
+		
+		selectedItem = cmbzona.getSelectedItem();
+		
+		if ( selectedItem.toString().equals("Columna Lumbar")){			
+			zona = Dolor.ZONA_columnalumbar;
+		}
+		if ( selectedItem.toString().equals("Columna Dorsal")){			
+			zona = Dolor.ZONA_columnadorsal;
+		}
+		if ( selectedItem.toString().equals("Columna Cervical")){			
+			zona = Dolor.ZONA_columnacervical;
+		}
+		if ( selectedItem.toString().equals("Articular")){			
+			zona = Dolor.ZONA_articular;
+		}
+		if ( selectedItem.toString().equals("Intestinal")){			
+			zona = Dolor.ZONA_intestinal;
+		}
+		if ( selectedItem.toString().equals("Ocular")){			
+			zona = Dolor.ZONA_ocular;
+		}
+		if ( selectedItem.toString().equals("Piel")){			
+			zona = Dolor.ZONA_piel;
+		}
+		
+		/*
+		defaultComboBoxModelcmborigen_dolor.addElement("Motivo Desconocido");
+		defaultComboBoxModelcmborigen_dolor.addElement("Levantó un peso excesivo");
+		defaultComboBoxModelcmborigen_dolor.addElement("Ha realizado demasiado ejercicio");
+		defaultComboBoxModelcmborigen_dolor.addElement("Mantuvo una mala postura");
+		*/
+		
+		
+		if ( cmborigen_dolor.isEnabled() ) {
+
+			selectedItem = cmborigen_dolor.getSelectedItem();
+
+			if ( selectedItem.toString().equals("Motivo Desconocido")){			
+				origen_dolor = Dolor.ORIGEN_DOLOR_desconocido;
+			}
+			if ( selectedItem.toString().equals("Levantó un peso excesivo")){			
+				origen_dolor = Dolor.ORIGEN_DOLOR_levantopeso;
+			}
+			if ( selectedItem.toString().equals("Ha realizado demasiado ejercicio")){			
+				origen_dolor = Dolor.ORIGEN_DOLOR_muchoejercicio;
+			}
+			if ( selectedItem.toString().equals("Mantuvo una mala postura")){			
+				origen_dolor = Dolor.ORIGEN_DOLOR_malapostura;
+			}
+
+		} else {
+			origen_dolor = Dolor.ORIGEN_DOLOR_nil;
+		}
+		
+		
+		if ( rdblodespiertanoche_no.isEnabled() && rdblodespiertanoche_si.isEnabled() ) {
+			
+			if ( rdblodespiertanoche_no.isSelected() ){			
+				lodespiertanoche = Dolor.DESPIERTA_no;
+			} else {
+				lodespiertanoche = Dolor.DESPIERTA_si;
+			}
+		}else {
+			lodespiertanoche = "";
+		}
+		
+		
+		
+		if ( rdbmejoria_ninguna.isEnabled() && rdbmejoria_enreposo.isEnabled() && rdbmejoria_conactividad.isEnabled() ) {
+			
+			if ( rdbmejoria_enreposo.isSelected() ){			
+				mejoria = Dolor.MEJORIA_enreposo;
+			} else {
+				if (rdbmejoria_conactividad.isSelected()) {
+					mejoria = Dolor.MEJORIA_conactividad;
+				} else {
+					mejoria = "";
+				}
+			}
+		}else {
+			mejoria = "";
+		}
+		
+		
+		if ( tfd_edad_inicio_dolor.isEnabled() ) {
+			edad_inicio_dolor = Integer.parseInt(tfd_edad_inicio_dolor.getText());
+		}else {
+			edad_inicio_dolor = 0;
+		}
+		
+		if ( tfd_meses_persistencia.isEnabled() ) {
+			meses_persistencia = Integer.parseInt(tfd_meses_persistencia.getText());
+		}else {
+			meses_persistencia = 0;
+		}
+		
+		
+		if ( rdbaspecto_Normal.isEnabled() && rdbaspecto_Colorado.isEnabled() ) {
+			
+			if ( rdbaspecto_Normal.isSelected() ){			
+				lodespiertanoche = Dolor.ASPECTO_Normal;
+			} else {
+				lodespiertanoche = Dolor.ASPECTO_Colorado;
+			}
+		}else {
+			lodespiertanoche = "";
+		}
+		
+		
+		if ( rdbinflamacion_Mucha.isEnabled() && rdbinflamacion_Poca.isEnabled()  && rdbinflamacion_Ninguna.isEnabled()  ) {
+			
+			if ( rdbinflamacion_Mucha.isSelected() ){			
+				inflamacion = Dolor.INFLAMACION_Mucha;
+			} else {
+					if ( rdbinflamacion_Poca.isSelected()) {
+						inflamacion = Dolor.INFLAMACION_Poca;
+					}	else {
+								if ( rdbinflamacion_Ninguna.isSelected()) {
+									inflamacion = Dolor.INFLAMACION_Ninguna;
+								}else {
+									inflamacion = "";
+								}
+						}	
+				}
+		}else {
+			lodespiertanoche = "";
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		
 		Object selected = cmbzona.getSelectedItem();
 		  
@@ -749,9 +912,26 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 				int jOptionResult = jOptionPane.showOptionDialog(frame, "¿El paciente presenta alguna otra dolencia?", "Dolencia adicional", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
 				
 				if ( jOptionResult == JOptionPane.YES_OPTION) {
-					DatosDolencias datosDolencias = new DatosDolencias(frame, false);
-				}else {
-					  DatosAntecedentes datosDolencias = new DatosAntecedentes(frame);
+					/*
+					SistemaDiagnostico.consulta.GenerarDolor1(
+							SistemaDiagnostico.id_diagnostico, 
+							SistemaDiagnostico.id_dolor, 
+							zona, 
+							origen_dolor, 
+							lodespiertanoche,
+							mejoria,
+							edad_inicio_dolor,
+							meses_persistencia,
+							aspecto,
+							inflamacion,
+							ritmo_evacuatorio
+							);
+					*/
+					
+						DatosDolencias datosDolencias = new DatosDolencias(frame, false);
+				}
+		  		else {
+					 	DatosAntecedentes datosDolencias = new DatosAntecedentes(frame);
 				}
  
 		  } else {
@@ -805,6 +985,38 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 	public void windowOpened(WindowEvent arg0) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	public boolean validar() {
+		
+		boolean resultado=true;
+		String strError="";
+		
+		if ( this.tfd_edad_inicio_dolor.getText().isEmpty()) {
+			strError = "Falta completar la edad de inicio de la dolencia";
+		    resultado = false;
+		}
+		
+		if ( this.tfd_meses_persistencia.getText().isEmpty()) {
+			strError = "Falta completar la cantidad de meses de persistencia";
+			resultado = false;
+		}
+		
+		if ( ! SistemaDiagnostico.validarTextoNumerico( this.tfd_edad_inicio_dolor.getText() )) {
+			strError = "Dato no numérico en el campo de la edad de inicio de la dolencia";
+			resultado = false;
+		}
+		
+		if ( ! SistemaDiagnostico.validarTextoNumerico( this.tfd_meses_persistencia.getText() )) {
+			strError = "Dato no numérico en el campo de la cantidad de meses de persistencia";
+			resultado = false;
+		}
+		
+		if (resultado == false) {
+			jOptionPane.setMessageType(JOptionPane.ERROR_MESSAGE);
+			jOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
+		}
+		return resultado;
 	}
 
 }

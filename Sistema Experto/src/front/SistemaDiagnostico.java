@@ -17,8 +17,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.xml.stream.events.EndDocument;
 
 import model.Consulta;
+import model.Paciente;
 
 
 
@@ -34,6 +36,16 @@ public class SistemaDiagnostico extends JPanel implements ActionListener{
 	
 	public static final int APP_WINDOW_X = 640;
 	public static final int APP_WINDOW_Y = 640;
+	
+	public static final int id_paciente = 1;
+	public static final int id_diagnostico = 1;
+	public static final int id_dolor = 1;
+	public static final int id_antecedente_paciente = 1;
+	public static final int id_antecedente_familiar = 1;
+	public static final int id_laboratorio = 1;
+	public static final int id_estudio_gen = 1;
+	public static final int id_estudio_rx = 1;
+	public static final int id_estudio_rmn = 1;
 	
 	protected static JFrame frame;
 	
@@ -54,6 +66,7 @@ public class SistemaDiagnostico extends JPanel implements ActionListener{
 	public JTextField tld_apellido;
 	public JTextField tld_edad;
 
+	public ButtonGroup btgSexo;
 	public JRadioButton rdbMasculino;
 	public JRadioButton rdbFemenino;
 	
@@ -138,7 +151,7 @@ public class SistemaDiagnostico extends JPanel implements ActionListener{
 	    rdbFemenino.setBounds(APP_WINDOW_X / 2 + 150 , current_y,APP_WINDOW_X / 2 - padding_controles, alto_controles);
 	    add(rdbFemenino);
 	    
-	    ButtonGroup btgSexo = new ButtonGroup();
+	    btgSexo = new ButtonGroup();
 	    btgSexo.add(rdbMasculino);
 	    btgSexo.add(rdbFemenino);
 			
@@ -208,6 +221,16 @@ public class SistemaDiagnostico extends JPanel implements ActionListener{
 	
 	private void btSiguiente() {
 		
+		String sexo;
+		
+		if (rdbFemenino.isSelected()) {
+			sexo = Paciente.SEXO_FEMENINO;
+		}else {
+			sexo = Paciente.SEXO_MASCULINO;
+		}
+		
+		consulta.GenerarPaciente(id_paciente, Integer.parseInt(tld_dni.getText()) , tld_nombre.getText(), tld_apellido.getText(), Integer.parseInt(tld_edad.getText()), sexo );
+		
 		DatosDolencias datosDolencias = new DatosDolencias(frame, true);
 	
 	}
@@ -218,54 +241,55 @@ public class SistemaDiagnostico extends JPanel implements ActionListener{
 		String strError="";
 		
 		if ( this.tld_nombre.getText().isEmpty()) {
-			strError = "nombre";
+			strError = "Falta completar el campo 'nombre'";
 		    resultado = false;
 		}
-		else {
-			if ( this.tld_apellido.getText().isEmpty()) {
-				strError = "apellido";
-				resultado = false;
-			}
-			else {
-				if ( this.tld_dni.getText().isEmpty()) {
-					strError = "DNI";
-					resultado = false;
-				}
-				else {
-					if ( this.tld_edad.getText().isEmpty()) {
-						strError = "edad";
-						resultado = false;
-					}
-				}
-			}
-		}
 		
-		
-		if ( !validarTextoNumerico( this.tld_dni.getText() )) {
-			strError = "DNI o se ingresó un dato no numerico";
+		if ( this.tld_apellido.getText().isEmpty()) {
+			strError = "Falta completar el campo 'apellido'";
 			resultado = false;
 		}
+		if ( this.tld_dni.getText().isEmpty()) {
+			strError = "Falta completar el campo 'DNI'";
+			resultado = false;
+		}
+				
+		if ( this.tld_edad.getText().isEmpty()) {
+			strError = "Falta completar el campo 'edad'";
+			resultado = false;
+		}
+		
+		if ( !validarTextoNumerico( this.tld_dni.getText() )) {
+			strError = "Dato no numérico en el campo 'DNI'";
+			resultado = false;
+		}
+		
 		if ( !validarTextoNumerico( this.tld_edad.getText() )) {
-			strError = "edad o se ingresó un dato no numerico";
+			strError = "Dato no numérico en el campo 'edad'";
 			resultado = false;
 		}
 		
 		if (resultado == false) {
 			jOptionPane.setMessageType(JOptionPane.ERROR_MESSAGE);
-			jOptionPane.showMessageDialog(frame, "Falta completar el campo " + strError, "Error", JOptionPane.ERROR_MESSAGE );
+			jOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
 		}
 		return resultado;
 	}
 
 	
-	 private boolean validarTextoNumerico(String text) {
+	 public static final boolean validarTextoNumerico(String text) {
+		 
+		 if (text.length() == 0) {
+			 return true;
+		 }
+		 
 	      try {
 	         Integer.parseInt(text);
 	         return true;
 	      } catch (NumberFormatException e) {
 	         return false;
 	      }
-	   }
+	  }
 
     
 
