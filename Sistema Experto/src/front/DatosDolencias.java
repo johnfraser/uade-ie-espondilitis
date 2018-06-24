@@ -4,7 +4,6 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
@@ -19,7 +18,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
-import model.Consulta;
+import back.ModelManager;
 import model.Dolor;
 
 public class DatosDolencias extends JPanel implements WindowListener, ActionListener{
@@ -746,15 +745,15 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 	
 	private void btSiguiente() {
 			
-		String zona;
-		String origen_dolor;
-		String lodespiertanoche;
-		String mejoria;
+		String zona = "";
+		String origen_dolor = "";
+		String lodespiertanoche = "";
+		String mejoria = "";
 		int edad_inicio_dolor;
 		int meses_persistencia;
-		String aspecto;
-		String inflamacion;
-		String ritmo_evacuatorio;
+		String aspecto = "";
+		String inflamacion = "";
+		String ritmo_evacuatorio = "";
 		
 		Object selectedItem;
 		
@@ -887,22 +886,6 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		
 		
 		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
 		Object selected = cmbzona.getSelectedItem();
 		  
 		  if ( selected.toString().equals("Columna Lumbar") && esPrimeraDolencia ){
@@ -910,6 +893,12 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 			    jOptionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
 				jOptionPane.setOptionType(JOptionPane.YES_NO_OPTION);
 				int jOptionResult = JOptionPane.showOptionDialog(frame, "¿El paciente presenta alguna otra dolencia?", "Dolencia adicional", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
+				
+				ModelManager.c.GenerarDolor2(
+						SistemaDiagnostico.id_diagnostico, 
+						SistemaDiagnostico.id_dolor,
+						zona, origen_dolor, lodespiertanoche, mejoria, edad_inicio_dolor, meses_persistencia, aspecto, inflamacion, ritmo_evacuatorio);
+			
 				
 				if ( jOptionResult == JOptionPane.YES_OPTION) {
 					/*
@@ -928,13 +917,20 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 							);
 					*/
 					
-						DatosDolencias datosDolencias = new DatosDolencias(frame, false);
+					
+					DatosDolencias datosDolencias = new DatosDolencias(frame, false);
 				}
 		  		else {
-					 	DatosAntecedentes datosDolencias = new DatosAntecedentes(frame);
+					DatosAntecedentes datosDolencias = new DatosAntecedentes(frame);
 				}
  
 		  } else {
+			  ModelManager.c.GenerarDolor2(
+						SistemaDiagnostico.id_diagnostico, 
+						SistemaDiagnostico.id_dolor,
+						zona, origen_dolor, lodespiertanoche, mejoria, edad_inicio_dolor, meses_persistencia, aspecto, inflamacion, ritmo_evacuatorio);
+			
+			  
 			  DatosAntecedentes datosDolencias = new DatosAntecedentes(frame);
 		  }
 	}

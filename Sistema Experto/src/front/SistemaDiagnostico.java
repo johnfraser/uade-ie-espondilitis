@@ -220,7 +220,6 @@ public class SistemaDiagnostico extends JPanel implements ActionListener{
 	private void btSiguiente() {
 		
 		int dni = Integer.parseInt( this.tld_dni.getText() );
-		int id_paciente = dni;		// TODO: change this by incremented value
 		String nombre = this.tld_nombre.getText();
 		String apellido = this.tld_apellido.getText();
 		int edad = Integer.parseInt( this.tld_edad.getText() );
@@ -228,6 +227,7 @@ public class SistemaDiagnostico extends JPanel implements ActionListener{
 		
 		ModelManager.c.GenerarPaciente(id_paciente, dni, nombre, apellido, edad, sexo);
 
+		
 		DatosDolencias datosDolencias = new DatosDolencias(frame, true);
 	
 	}
