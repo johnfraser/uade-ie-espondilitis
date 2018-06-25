@@ -80,7 +80,7 @@ public class Consulta {
 		this.antecedentes_familiares = new AntecedentesFamiliares(id_paciente, id_antecedentes_familiares, enfermedad);
 	}
 	
-	public void GenerarAntecedentesDiagnostico(int id_diagnostico, int id_paciente) {
+	public void GenerarDiagnostico(int id_diagnostico, int id_paciente) {
 		
 		this.diagnostico = new Diagnostico(id_diagnostico, id_paciente);
 		
