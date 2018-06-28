@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
@@ -18,17 +19,29 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
-import back.ModelManager;
+import data.DBHelper;
+import model.Consulta;
+import model.Diagnostico;
 import model.Dolor;
 
 public class DatosDolencias extends JPanel implements WindowListener, ActionListener{
 	
-	protected static JFrame frame;
-	protected JFrame prev_frame;
+	public static final int ZONA_LUMBAR = 0;
+	public static final int ZONA_DORSAL_CERVICAL = 1;
+	public static final int ZONA_ART_OCU_PIEL = 2;
+	public static final int ZONA_INTESTINAL = 3;
 	
-	boolean esPrimeraDolencia = true;
+	protected MainFrame frame;
+	
+	private boolean esPrimeraDolencia = true;
+	
+	int zona_elegida;
 	
 	protected static JOptionPane jOptionPane;
+	
+	public static int id_dolor_actual;
+	public static int id_paciente_actual;
+	public static int id_diagnostico_actual;
 	
 	public JLabel lbl_titulo;
 	
@@ -94,29 +107,37 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 	
 	public boolean estadoCarga = false;
 	
-	public DatosDolencias ( JFrame prevframe , boolean esPrimeraDolencia) {
+	public DatosDolencias ( MainFrame prevframe , boolean esPrimeraDolencia) {
+	//public DatosDolencias (boolean esPrimeraDolencia) {
 		
-		prev_frame = prevframe;
-		prev_frame.setVisible(false);
+		frame = prevframe;
 		
 		this.esPrimeraDolencia = esPrimeraDolencia;
 		
 		jOptionPane = new JOptionPane();
 		
+		id_dolor_actual = 0;
+		id_paciente_actual = MainFrame.consulta.paciente.id_paciente;
+		id_diagnostico_actual = 0;
 		
 		setLayout(null);
 		
-		createAndShowGUI();
+		//createAndShowGUI();
 		
 		current_x = 10;
 		current_y = 10;
 		
 		//Titulo
-		lbl_titulo = new JLabel("A continuación indique las características del dolor que manifiesta el paciente:");
-		lbl_titulo.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X - SistemaDiagnostico.padding_controles,SistemaDiagnostico.alto_controles);
+		
+		if (esPrimeraDolencia) {
+			lbl_titulo = new JLabel("A continuación indique las características del dolor que manifiesta el paciente:");	
+		}else {
+			lbl_titulo = new JLabel("Indique las características del dolor adicional que manifiesta el paciente:");
+		}
+		lbl_titulo.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X - MainFrame.padding_controles,MainFrame.alto_controles);
 		add(lbl_titulo); 
 		
-		current_y = current_y + SistemaDiagnostico.alto_controles * 2;
+		current_y = current_y + MainFrame.alto_controles * 2;
 		
 		cargarZona();
 		cargarOrigen_dolor();
@@ -124,40 +145,44 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		cargarMejoria();
 		
 		//edad_inicio_dolor
-		current_y = current_y + SistemaDiagnostico.alto_controles * 2;
+		current_y = current_y + MainFrame.alto_controles * 2;
 		lbl_edad_inicio_dolor = new JLabel("Edad de inicio del dolor:");
-		lbl_edad_inicio_dolor.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		lbl_edad_inicio_dolor.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_edad_inicio_dolor);
 		tfd_edad_inicio_dolor = new JTextField ();
-		tfd_edad_inicio_dolor.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		tfd_edad_inicio_dolor.setBounds(MainFrame.APP_WINDOW_X / 2,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(tfd_edad_inicio_dolor);
 		
 		// meses_persistencia
-		current_y = current_y + SistemaDiagnostico.alto_controles * 2;
+		current_y = current_y + MainFrame.alto_controles * 2;
 		lbl_meses_persistencia = new JLabel("¿Hace cuántos meses tiene el dolor?:");
-		lbl_meses_persistencia.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		lbl_meses_persistencia.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_meses_persistencia);
 		tfd_meses_persistencia = new JTextField ();
-		tfd_meses_persistencia.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		tfd_meses_persistencia.setBounds(MainFrame.APP_WINDOW_X / 2,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(tfd_meses_persistencia);
 	
 		cargarAspecto();
 		cargarInflamacion();
 		cargarRitmo();
 		
-	    current_y = current_y + SistemaDiagnostico.alto_controles * 5;
+	    current_y = current_y + MainFrame.alto_controles * 5;
 	    
 		btAtras = new JButton("Atrás");
 		btAtras.addActionListener(this);
-		btAtras.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2 - ( 150 / 2) - 150 ,current_y, 200 , SistemaDiagnostico.alto_controles);
+		btAtras.setBounds(MainFrame.APP_WINDOW_X / 2 - ( 150 / 2) - 150 ,current_y, 200 , MainFrame.alto_controles);
 		add(btAtras);
 		
 		btSiguiente = new JButton("Siguiente");
 		btSiguiente.addActionListener(this);
-		btSiguiente.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2 - ( 150 / 2) + 100 ,current_y, 200, SistemaDiagnostico.alto_controles);
+		btSiguiente.setBounds(MainFrame.APP_WINDOW_X / 2 - ( 150 / 2) + 100 ,current_y, 200, MainFrame.alto_controles);
 		add(btSiguiente);
 		
+		
 		estadoCarga = true;
+		
+		this.setVisible(true);
+		
 		checkZona(cmbzona);
 		
 	}
@@ -166,15 +191,15 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 	private void cargarZona() {
 
 		//Zona
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 		lbl_zona = new JLabel("Zona del dolor");
-		lbl_zona.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		lbl_zona.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_zona);
 		
 		cmbzona = new JComboBox<String>();
 		cmbzona.setEditable(false);
 		cmbzona.addActionListener(this);
-		DefaultComboBoxModel<String> defaultComboBoxModelzona = new DefaultComboBoxModel<String>();
+		DefaultComboBoxModel defaultComboBoxModelzona = new DefaultComboBoxModel();
 		cmbzona.setModel(defaultComboBoxModelzona);
 		
 		if (esPrimeraDolencia ) {
@@ -187,55 +212,55 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		defaultComboBoxModelzona.addElement("Ocular");
 		defaultComboBoxModelzona.addElement("Piel");
 		cmbzona.setSelectedItem(0);
-		cmbzona.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio , SistemaDiagnostico.alto_controles);
+		cmbzona.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio , MainFrame.alto_controles);
 		add(cmbzona);
 	/*	
 		rdbzona_columnalumbar = new JRadioButton("Columna Lumbar");
 		rdbzona_columnalumbar.addActionListener(this);
 		rdbzona_columnalumbar.setSelected(true);
-		rdbzona_columnalumbar.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio , SistemaDiagnostico.alto_controles);
+		rdbzona_columnalumbar.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio , MainFrame.alto_controles);
 	    add(rdbzona_columnalumbar);
 	    
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 	    
 	    rdbzona_columnadorsal = new JRadioButton("Columna Dorsal");
 	    rdbzona_columnadorsal.addActionListener(this);
-	    rdbzona_columnadorsal.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio  , SistemaDiagnostico.alto_controles);
+	    rdbzona_columnadorsal.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio  , MainFrame.alto_controles);
 	    add(rdbzona_columnadorsal);
 	    
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 	    
 		rdbzona_columnacervical = new JRadioButton("Columna Cervical");
 		rdbzona_columnacervical.addActionListener(this);
-		rdbzona_columnacervical.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio  , SistemaDiagnostico.alto_controles);
+		rdbzona_columnacervical.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio  , MainFrame.alto_controles);
 	    add(rdbzona_columnacervical);
 	    
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 	    
 		rdbzona_articular = new JRadioButton("Articular");
 		rdbzona_articular.addActionListener(this);
-		rdbzona_articular.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio  , SistemaDiagnostico.alto_controles);
+		rdbzona_articular.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio  , MainFrame.alto_controles);
 	    add(rdbzona_articular);
 	    
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 	    
 		rdbzona_intestinal = new JRadioButton("Intestinal");
 		rdbzona_intestinal.addActionListener(this);
-		rdbzona_intestinal.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio  , SistemaDiagnostico.alto_controles);
+		rdbzona_intestinal.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio  , MainFrame.alto_controles);
 	    add(rdbzona_intestinal);
 	    
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 	    
 		rdbzona_ocular = new JRadioButton("Ocular");
 		rdbzona_ocular.addActionListener(this);
-		rdbzona_ocular.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio  , SistemaDiagnostico.alto_controles);
+		rdbzona_ocular.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio  , MainFrame.alto_controles);
 	    add(rdbzona_ocular);
 	    
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 	    
 		rdbzona_piel = new JRadioButton("Piel");
 		rdbzona_piel.addActionListener(this);
-		rdbzona_piel.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio  , SistemaDiagnostico.alto_controles);
+		rdbzona_piel.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio  , MainFrame.alto_controles);
 	    add(rdbzona_piel);
 	    
 	    ButtonGroup btgZona = new ButtonGroup();
@@ -257,19 +282,19 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		public JRadioButton rdborigen_dolor_malapostura;
 		public JRadioButton rdborigen_dolor_desconocido;
 		*/
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 		
 		//Zona
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 		lbl_origen_dolor = new JLabel("Origen del Dolor");
-		lbl_origen_dolor.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		lbl_origen_dolor.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_origen_dolor);
 		
 		
 		cmborigen_dolor = new JComboBox<String>();
 		cmborigen_dolor.setEditable(false);
 		cmborigen_dolor.addActionListener(this);
-		DefaultComboBoxModel<String> defaultComboBoxModelcmborigen_dolor = new DefaultComboBoxModel<String>();
+		DefaultComboBoxModel defaultComboBoxModelcmborigen_dolor = new DefaultComboBoxModel();
 		cmborigen_dolor.setModel(defaultComboBoxModelcmborigen_dolor);
 		
 		defaultComboBoxModelcmborigen_dolor.addElement("Motivo Desconocido");
@@ -277,7 +302,7 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		defaultComboBoxModelcmborigen_dolor.addElement("Ha realizado demasiado ejercicio");
 		defaultComboBoxModelcmborigen_dolor.addElement("Mantuvo una mala postura");
 		cmborigen_dolor.setSelectedItem(0);
-		cmborigen_dolor.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio , SistemaDiagnostico.alto_controles);
+		cmborigen_dolor.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio , MainFrame.alto_controles);
 		add(cmborigen_dolor);
 		
 		/*
@@ -285,28 +310,28 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		rdborigen_dolor_desconocido = new JRadioButton("Motivo Desconocido");
 		rdborigen_dolor_desconocido.addActionListener(this);
 		rdborigen_dolor_desconocido.setSelected(true);
-		rdborigen_dolor_desconocido.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio , SistemaDiagnostico.alto_controles);
+		rdborigen_dolor_desconocido.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio , MainFrame.alto_controles);
 	    add(rdborigen_dolor_desconocido);
 	    
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 		
 		rdborigen_dolor_levantopeso = new JRadioButton("Levantó un peso excesivo");
 		rdborigen_dolor_levantopeso.addActionListener(this);
-		rdborigen_dolor_levantopeso.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio , SistemaDiagnostico.alto_controles);
+		rdborigen_dolor_levantopeso.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio , MainFrame.alto_controles);
 	    add(rdborigen_dolor_levantopeso);
 	    
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 	    
 		rdborigen_dolor_muchoejercicio = new JRadioButton("Ha realizado demasiado ejercicio");
 		rdborigen_dolor_muchoejercicio.addActionListener(this);
-		rdborigen_dolor_muchoejercicio.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio  , SistemaDiagnostico.alto_controles);
+		rdborigen_dolor_muchoejercicio.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio  , MainFrame.alto_controles);
 	    add(rdborigen_dolor_muchoejercicio);
 	    
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 	    
 		rdborigen_dolor_malapostura = new JRadioButton("Mantuvo una mala postura");
 		rdborigen_dolor_malapostura.addActionListener(this);
-		rdborigen_dolor_malapostura.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio  , SistemaDiagnostico.alto_controles);
+		rdborigen_dolor_malapostura.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio  , MainFrame.alto_controles);
 	    add(rdborigen_dolor_malapostura);
 	    
 	    /*
@@ -330,24 +355,24 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		public JRadioButton rdblodespiertanoche_si;
 		public JRadioButton rdblodespiertanoche_no;
 		*/
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 		
 		//Zona
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 		lbl_lodespiertanoche = new JLabel("¿Lo despierta de noche?");
-		lbl_lodespiertanoche.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		lbl_lodespiertanoche.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_lodespiertanoche);
 		
 		rdblodespiertanoche_no = new JRadioButton("No");
 		rdblodespiertanoche_no.addActionListener(this);
 		rdblodespiertanoche_no.setSelected(true);
-		rdblodespiertanoche_no.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, 150 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		rdblodespiertanoche_no.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, 150 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(rdblodespiertanoche_no);
 		
 		rdblodespiertanoche_si = new JRadioButton("Si");
 		rdblodespiertanoche_si.addActionListener(this);
-		rdblodespiertanoche_si.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, 150 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
-		rdblodespiertanoche_si.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2 + 150 , current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		rdblodespiertanoche_si.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, 150 - MainFrame.padding_controles, MainFrame.alto_controles);
+		rdblodespiertanoche_si.setBounds(MainFrame.APP_WINDOW_X / 2 + 150 , current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 
 		add(rdblodespiertanoche_si);
 
@@ -364,32 +389,32 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 	public JRadioButton rdbmejoria_enreposo;
 	public JRadioButton rdbmejoria_conactividad;
 		*/
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 		
 		//Zona
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 		lbl_mejoria = new JLabel("¿Identifica alguna mejoría?");
-		lbl_mejoria.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		lbl_mejoria.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_mejoria);
 		
 		rdbmejoria_ninguna = new JRadioButton("No");
 		rdbmejoria_ninguna.addActionListener(this);
 		rdbmejoria_ninguna.setSelected(true);
-		rdbmejoria_ninguna.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio , SistemaDiagnostico.alto_controles);
+		rdbmejoria_ninguna.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio , MainFrame.alto_controles);
 	    add(rdbmejoria_ninguna);
 	    
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 		
 		rdbmejoria_enreposo = new JRadioButton("Estando en reposo");
 		rdbmejoria_enreposo.addActionListener(this);
-		rdbmejoria_enreposo.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio , SistemaDiagnostico.alto_controles);
+		rdbmejoria_enreposo.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio , MainFrame.alto_controles);
 	    add(rdbmejoria_enreposo);
 	    
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 	    
 		rdbmejoria_conactividad = new JRadioButton("Estando en actividad");
 		rdbmejoria_conactividad.addActionListener(this);
-		rdbmejoria_conactividad.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio  , SistemaDiagnostico.alto_controles);
+		rdbmejoria_conactividad.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio  , MainFrame.alto_controles);
 	    add(rdbmejoria_conactividad);
 	    
 	    
@@ -412,24 +437,24 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 	public JRadioButton rdbaspecto_Colorado;
 	public JRadioButton rdbaspecto_Normal;
 		*/
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 		
 		// Aspecto
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 		lbl_lodespiertanoche = new JLabel("Indicar aspecto de la zona afectada");
-		lbl_lodespiertanoche.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		lbl_lodespiertanoche.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_lodespiertanoche);
 		
 		rdbaspecto_Normal = new JRadioButton("Normal");
 		rdbaspecto_Normal.addActionListener(this);
 		rdbaspecto_Normal.setSelected(true);
-		rdbaspecto_Normal.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, 150 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		rdbaspecto_Normal.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, 150 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(rdbaspecto_Normal);
 		
 		rdbaspecto_Colorado = new JRadioButton("Colorado");
 		rdbaspecto_Colorado.addActionListener(this);
-		rdbaspecto_Colorado.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, 150 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
-		rdbaspecto_Colorado.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2 + 150 , current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		rdbaspecto_Colorado.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, 150 - MainFrame.padding_controles, MainFrame.alto_controles);
+		rdbaspecto_Colorado.setBounds(MainFrame.APP_WINDOW_X / 2 + 150 , current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(rdbaspecto_Colorado);
 
 		ButtonGroup btgAspecto = new ButtonGroup();
@@ -445,32 +470,32 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 	public JRadioButton rdbinflamacion_Poca;
 	public JRadioButton rdbinflamacion_Mucha;
 			*/
-			current_y = current_y + SistemaDiagnostico.alto_controles;
+			current_y = current_y + MainFrame.alto_controles;
 			
 			//Inflamacion
-			current_y = current_y + SistemaDiagnostico.alto_controles;
+			current_y = current_y + MainFrame.alto_controles;
 			lbl_mejoria = new JLabel("¿Presenta inflamación?");
-			lbl_mejoria.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+			lbl_mejoria.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 			add(lbl_mejoria);
 			
 			rdbinflamacion_Ninguna = new JRadioButton("No");
 			rdbinflamacion_Ninguna.addActionListener(this);
 			rdbinflamacion_Ninguna.setSelected(true);
-			rdbinflamacion_Ninguna.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio , SistemaDiagnostico.alto_controles);
+			rdbinflamacion_Ninguna.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio , MainFrame.alto_controles);
 		    add(rdbinflamacion_Ninguna);
 		    
-			current_y = current_y + SistemaDiagnostico.alto_controles;
+			current_y = current_y + MainFrame.alto_controles;
 			
 			rdbinflamacion_Poca = new JRadioButton("Poca");
 			rdbinflamacion_Poca.addActionListener(this);
-			rdbinflamacion_Poca.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio , SistemaDiagnostico.alto_controles);
+			rdbinflamacion_Poca.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio , MainFrame.alto_controles);
 		    add(rdbinflamacion_Poca);
 		    
-			current_y = current_y + SistemaDiagnostico.alto_controles;
+			current_y = current_y + MainFrame.alto_controles;
 		    
 			rdbinflamacion_Mucha = new JRadioButton("Mucha");
 			rdbinflamacion_Mucha.addActionListener(this);
-			rdbinflamacion_Mucha.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio  , SistemaDiagnostico.alto_controles);
+			rdbinflamacion_Mucha.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio  , MainFrame.alto_controles);
 		    add(rdbinflamacion_Mucha);
 		    
 		    
@@ -497,19 +522,19 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 	public JRadioButton rdbritmo_evacuatorio_Pus;
 	public JRadioButton rdbritmo_evacuatorio_Sangre;
 			*/
-			current_y = current_y + SistemaDiagnostico.alto_controles;
+			current_y = current_y + MainFrame.alto_controles;
 			
 			//Inflamacion
-			current_y = current_y + SistemaDiagnostico.alto_controles;
+			current_y = current_y + MainFrame.alto_controles;
 			lbl_ritmo_evacuatorio = new JLabel("Indique ritmo evacuatorio");
-			lbl_ritmo_evacuatorio.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+			lbl_ritmo_evacuatorio.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 			add(lbl_ritmo_evacuatorio);
 			
 			
 			cmbritmo_evacuatorio = new JComboBox<String>();
 			cmbritmo_evacuatorio.setEditable(false);
 			cmbritmo_evacuatorio.addActionListener(this);
-			DefaultComboBoxModel<String> defaultComboBoxModelcmbritmo_evacuatorio = new DefaultComboBoxModel<String>();
+			DefaultComboBoxModel defaultComboBoxModelcmbritmo_evacuatorio = new DefaultComboBoxModel();
 			cmbritmo_evacuatorio.setModel(defaultComboBoxModelcmbritmo_evacuatorio);
 			
 			defaultComboBoxModelcmbritmo_evacuatorio.addElement("Normal");
@@ -518,7 +543,7 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 			defaultComboBoxModelcmbritmo_evacuatorio.addElement("Pus");
 			defaultComboBoxModelcmbritmo_evacuatorio.addElement("Sangre");
 			cmbritmo_evacuatorio.setSelectedItem(0);
-			cmbritmo_evacuatorio.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio , SistemaDiagnostico.alto_controles);
+			cmbritmo_evacuatorio.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio , MainFrame.alto_controles);
 			add(cmbritmo_evacuatorio);
 			
 			/*
@@ -527,35 +552,35 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 			rdbritmo_evacuatorio_Normal = new JRadioButton("Normal");
 			rdbritmo_evacuatorio_Normal.addActionListener(this);
 			rdbritmo_evacuatorio_Normal.setSelected(true);
-			rdbritmo_evacuatorio_Normal.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio , SistemaDiagnostico.alto_controles);
+			rdbritmo_evacuatorio_Normal.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio , MainFrame.alto_controles);
 		    add(rdbritmo_evacuatorio_Normal);
 		    
-			current_y = current_y + SistemaDiagnostico.alto_controles;
+			current_y = current_y + MainFrame.alto_controles;
 			
 			rdbritmo_evacuatorio_Diarrea = new JRadioButton("Diarrea");
 			rdbritmo_evacuatorio_Diarrea.addActionListener(this);
-			rdbritmo_evacuatorio_Diarrea.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio , SistemaDiagnostico.alto_controles);
+			rdbritmo_evacuatorio_Diarrea.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio , MainFrame.alto_controles);
 		    add(rdbritmo_evacuatorio_Diarrea);
 		    
-			current_y = current_y + SistemaDiagnostico.alto_controles;
+			current_y = current_y + MainFrame.alto_controles;
 		    
 			rdbritmo_evacuatorio_Moco = new JRadioButton("Moco");
 			rdbritmo_evacuatorio_Moco.addActionListener(this);
-			rdbritmo_evacuatorio_Moco.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio  , SistemaDiagnostico.alto_controles);
+			rdbritmo_evacuatorio_Moco.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio  , MainFrame.alto_controles);
 		    add(rdbritmo_evacuatorio_Moco);
 		    
-			current_y = current_y + SistemaDiagnostico.alto_controles;
+			current_y = current_y + MainFrame.alto_controles;
 		    
 			rdbritmo_evacuatorio_Pus = new JRadioButton("Pus");
 			rdbritmo_evacuatorio_Pus.addActionListener(this);
-			rdbritmo_evacuatorio_Pus.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio  , SistemaDiagnostico.alto_controles);
+			rdbritmo_evacuatorio_Pus.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio  , MainFrame.alto_controles);
 		    add(rdbritmo_evacuatorio_Pus);
 		    
-			current_y = current_y + SistemaDiagnostico.alto_controles;
+			current_y = current_y + MainFrame.alto_controles;
 		    
 			rdbritmo_evacuatorio_Sangre = new JRadioButton("Sangre");
 			rdbritmo_evacuatorio_Sangre.addActionListener(this);
-			rdbritmo_evacuatorio_Sangre.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio  , SistemaDiagnostico.alto_controles);
+			rdbritmo_evacuatorio_Sangre.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio  , MainFrame.alto_controles);
 		    add(rdbritmo_evacuatorio_Sangre);
 		    
 		    
@@ -582,6 +607,8 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 	
 	private void estadoControlesDorsalCervical() {
 		
+		
+		
 		this.cmborigen_dolor.setEnabled(false);
 		this.rdblodespiertanoche_no.setEnabled(false);
 		this.rdblodespiertanoche_si.setEnabled(false);
@@ -589,7 +616,9 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		this.rdbmejoria_enreposo.setEnabled(false);
 		this.rdbmejoria_ninguna.setEnabled(false);
 		this.tfd_edad_inicio_dolor.setEnabled(false);
+		this.tfd_edad_inicio_dolor.setText("");
 		this.tfd_meses_persistencia.setEnabled(false);
+		this.tfd_meses_persistencia.setText("");
 		this.rdbaspecto_Colorado.setEnabled(false);
 		this.rdbaspecto_Normal.setEnabled(false);
 		this.rdbinflamacion_Mucha.setEnabled(false);
@@ -626,7 +655,9 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		this.rdbmejoria_enreposo.setEnabled(false);
 		this.rdbmejoria_ninguna.setEnabled(false);
 		this.tfd_edad_inicio_dolor.setEnabled(false);
+		this.tfd_edad_inicio_dolor.setText("");
 		this.tfd_meses_persistencia.setEnabled(false);
+		this.tfd_meses_persistencia.setText("");
 		this.rdbaspecto_Colorado.setEnabled(true);
 		this.rdbaspecto_Normal.setEnabled(true);
 		this.rdbinflamacion_Mucha.setEnabled(true);
@@ -643,7 +674,9 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		this.rdbmejoria_enreposo.setEnabled(false);
 		this.rdbmejoria_ninguna.setEnabled(false);
 		this.tfd_edad_inicio_dolor.setEnabled(false);
+		this.tfd_edad_inicio_dolor.setText("");
 		this.tfd_meses_persistencia.setEnabled(false);
+		this.tfd_meses_persistencia.setText("");
 		this.rdbaspecto_Colorado.setEnabled(false);
 		this.rdbaspecto_Normal.setEnabled(false);
 		this.rdbinflamacion_Mucha.setEnabled(true);
@@ -652,33 +685,6 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		this.cmbritmo_evacuatorio.setEnabled(true);
 	}
 	
-	
-	
-	  private void createAndShowGUI() {
-	        //Create and set up the window.
-	        frame = new JFrame(SistemaDiagnostico.APP_NAME + " "+ SistemaDiagnostico.APP_VERSION);
-	        frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-
-
-	        //Add contents to the window.
-	        frame.add(this);
-	        frame.addWindowListener(this);
-	        
-	        
-	        frame.setSize(SistemaDiagnostico.APP_WINDOW_X, SistemaDiagnostico.APP_WINDOW_Y);		
-	   		
-	   		Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-	   	    int x = (int) ((screen.getWidth() - frame.getWidth()) / 2);
-	   	    int y = (int) ((screen.getHeight() - frame.getHeight()) / 2);
-	   	    
-	   	    frame.setLocation(x, y);
-	   	 
-	   	    frame.setPreferredSize(new Dimension(SistemaDiagnostico.APP_WINDOW_X,SistemaDiagnostico.APP_WINDOW_Y));
-	         
-	        //Display the window.
-	        frame.pack();
-	        frame.setVisible(true);
-	    }
 
 	  @Override
 	  public void actionPerformed(ActionEvent arg0) {
@@ -688,9 +694,9 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		  if (estadoCarga) {
 
 			  if ( arg0.getSource() == btSiguiente) {
-				  if (validar()) {
+				 
 					  btSiguiente();
-				  }
+				  
 			  }
 
 			  if ( arg0.getSource() == btAtras) {
@@ -719,23 +725,25 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		  Object selected = c.getSelectedItem();
 		  
 		  if( selected.toString().equals("Columna Lumbar")){
+			  	  zona_elegida = ZONA_LUMBAR;
 				  estadoControlesLumbar();
 			  }
 
 		  if( selected.toString().equals("Columna Dorsal") || selected.toString().equals("Columna Cervical") ) {
-
+		  	  zona_elegida = ZONA_DORSAL_CERVICAL;
 			  estadoControlesDorsalCervical();
 
 		  }
 		  
 		  if( selected.toString().equals("Articular") || selected.toString().equals("Ocular") || selected.toString().equals("Piel") ) {
-
+		  	  zona_elegida = ZONA_ART_OCU_PIEL;
 			  estadoControlesArtOcuPiel();
 
 		  }
 		  
 		  
 		  if( selected.toString().equals("Intestinal")){
+		  	  zona_elegida = ZONA_INTESTINAL;
 			  estadoControlesIntestinal();
 		  }
 		  
@@ -744,21 +752,60 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 	  
 	
 	private void btSiguiente() {
+					
+		if (validar()) {
 			
-		String zona = "";
-		String origen_dolor = "";
-		String lodespiertanoche = "";
-		String mejoria = "";
+			GuardarDolor();
+
+			if ( zona_elegida == ZONA_LUMBAR && esPrimeraDolencia ){
+
+				jOptionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
+				jOptionPane.setOptionType(JOptionPane.YES_NO_OPTION);
+				int jOptionResult = jOptionPane.showOptionDialog(frame, "¿El paciente presenta alguna otra dolencia?", "Dolencia adicional", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
+
+				if ( jOptionResult == JOptionPane.YES_OPTION) {
+
+					//DatosDolencias datosDolencias = new DatosDolencias(frame, false);
+					//this.setVisible(false);
+					frame.MostrarDatosSegundaDolencia(this);
+					
+				}
+				else {
+					//DatosAntecedentes datosAntecedentes = new DatosAntecedentes(frame);
+					frame.BorrarSegundaDolencia();
+					frame.MostrarDatosAntecedentes(this,esPrimeraDolencia);
+				}
+
+			} else {
+				//DatosAntecedentes datosAntecedentes = new DatosAntecedentes(frame);
+				frame.BorrarSegundaDolencia();
+				frame.MostrarDatosAntecedentes(this,esPrimeraDolencia);
+			}
+			
+		}
+
+
+	}
+	
+	private void GuardarDolor() {
+		
+		String zona;
+		String origen_dolor;
+		String lodespiertanoche;
+		String mejoria;
 		int edad_inicio_dolor;
 		int meses_persistencia;
-		String aspecto = "";
-		String inflamacion = "";
-		String ritmo_evacuatorio = "";
-		
+		String aspecto;
+		String inflamacion;
+		String ritmo_evacuatorio;
 		Object selectedItem;
+		DBHelper dbHelper;
+		
+		dbHelper = new DBHelper();
 		
 		selectedItem = cmbzona.getSelectedItem();
-		
+
+		zona = "";
 		if ( selectedItem.toString().equals("Columna Lumbar")){			
 			zona = Dolor.ZONA_columnalumbar;
 		}
@@ -780,14 +827,15 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		if ( selectedItem.toString().equals("Piel")){			
 			zona = Dolor.ZONA_piel;
 		}
-		
+
 		/*
-		defaultComboBoxModelcmborigen_dolor.addElement("Motivo Desconocido");
-		defaultComboBoxModelcmborigen_dolor.addElement("Levantó un peso excesivo");
-		defaultComboBoxModelcmborigen_dolor.addElement("Ha realizado demasiado ejercicio");
-		defaultComboBoxModelcmborigen_dolor.addElement("Mantuvo una mala postura");
-		*/
-		
+	defaultComboBoxModelcmborigen_dolor.addElement("Motivo Desconocido");
+	defaultComboBoxModelcmborigen_dolor.addElement("Levantó un peso excesivo");
+	defaultComboBoxModelcmborigen_dolor.addElement("Ha realizado demasiado ejercicio");
+	defaultComboBoxModelcmborigen_dolor.addElement("Mantuvo una mala postura");
+		 */
+
+		origen_dolor = "";
 		
 		if ( cmborigen_dolor.isEnabled() ) {
 
@@ -809,23 +857,23 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		} else {
 			origen_dolor = Dolor.ORIGEN_DOLOR_nil;
 		}
-		
+
+		lodespiertanoche = "";
 		
 		if ( rdblodespiertanoche_no.isEnabled() && rdblodespiertanoche_si.isEnabled() ) {
-			
+
 			if ( rdblodespiertanoche_no.isSelected() ){			
 				lodespiertanoche = Dolor.DESPIERTA_no;
 			} else {
 				lodespiertanoche = Dolor.DESPIERTA_si;
 			}
-		}else {
-			lodespiertanoche = "";
 		}
-		
-		
+
+
+		mejoria = "";
 		
 		if ( rdbmejoria_ninguna.isEnabled() && rdbmejoria_enreposo.isEnabled() && rdbmejoria_conactividad.isEnabled() ) {
-			
+
 			if ( rdbmejoria_enreposo.isSelected() ){			
 				mejoria = Dolor.MEJORIA_enreposo;
 			} else {
@@ -835,109 +883,124 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 					mejoria = "";
 				}
 			}
-		}else {
-			mejoria = "";
 		}
-		
+
+		edad_inicio_dolor = 0;
 		
 		if ( tfd_edad_inicio_dolor.isEnabled() ) {
 			edad_inicio_dolor = Integer.parseInt(tfd_edad_inicio_dolor.getText());
-		}else {
-			edad_inicio_dolor = 0;
 		}
-		
+
+		meses_persistencia = 0;
 		if ( tfd_meses_persistencia.isEnabled() ) {
 			meses_persistencia = Integer.parseInt(tfd_meses_persistencia.getText());
-		}else {
-			meses_persistencia = 0;
 		}
-		
-		
+
+		aspecto = "";
 		if ( rdbaspecto_Normal.isEnabled() && rdbaspecto_Colorado.isEnabled() ) {
-			
+
 			if ( rdbaspecto_Normal.isSelected() ){			
-				lodespiertanoche = Dolor.ASPECTO_Normal;
+				aspecto = Dolor.ASPECTO_Normal;
 			} else {
-				lodespiertanoche = Dolor.ASPECTO_Colorado;
+				aspecto = Dolor.ASPECTO_Colorado;
 			}
-		}else {
-			lodespiertanoche = "";
 		}
-		
-		
+
+		inflamacion = "";	
 		if ( rdbinflamacion_Mucha.isEnabled() && rdbinflamacion_Poca.isEnabled()  && rdbinflamacion_Ninguna.isEnabled()  ) {
-			
+
 			if ( rdbinflamacion_Mucha.isSelected() ){			
 				inflamacion = Dolor.INFLAMACION_Mucha;
 			} else {
-					if ( rdbinflamacion_Poca.isSelected()) {
-						inflamacion = Dolor.INFLAMACION_Poca;
-					}	else {
-								if ( rdbinflamacion_Ninguna.isSelected()) {
-									inflamacion = Dolor.INFLAMACION_Ninguna;
-								}else {
-									inflamacion = "";
-								}
-						}	
-				}
-		}else {
-			lodespiertanoche = "";
+				if ( rdbinflamacion_Poca.isSelected()) {
+					inflamacion = Dolor.INFLAMACION_Poca;
+				}	else {
+					if ( rdbinflamacion_Ninguna.isSelected()) {
+						inflamacion = Dolor.INFLAMACION_Ninguna;
+					}else {
+						inflamacion = "";
+					}
+				}	
+			}
+		}
+		
+		ritmo_evacuatorio = "";
+		
+		if ( cmbritmo_evacuatorio.isEnabled()) {
+						
+			selectedItem = cmbritmo_evacuatorio.getSelectedItem();
+
+			if ( selectedItem.toString().equals("Normal")){			
+				ritmo_evacuatorio = Dolor.RITMO_EVACUATORIO_Normal;
+			}
+			if ( selectedItem.toString().equals("Diarrea")){			
+				ritmo_evacuatorio = Dolor.RITMO_EVACUATORIO_Diarrea;
+			}
+			if ( selectedItem.toString().equals("Moco")){			
+				ritmo_evacuatorio = Dolor.RITMO_EVACUATORIO_Moco;
+			}
+			if ( selectedItem.toString().equals("Pus")){			
+				ritmo_evacuatorio = Dolor.RITMO_EVACUATORIO_Pus;
+			}
+			if ( selectedItem.toString().equals("Sangre")){			
+				ritmo_evacuatorio = Dolor.RITMO_EVACUATORIO_Sangre;
+			}
 		}
 		
 		
+//		String condiciones[] = {String.valueOf(DBHelper.TABLE_Diagnostico_id_paciente)};
+//		String valores[] = {String.valueOf(MainFrame.id_paciente_actual)};
+//		int cantidad_condiciones = 1;
 		
-		Object selected = cmbzona.getSelectedItem();
-		  
-		  if ( selected.toString().equals("Columna Lumbar") && esPrimeraDolencia ){
-			  
-			    jOptionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
-				jOptionPane.setOptionType(JOptionPane.YES_NO_OPTION);
-				int jOptionResult = JOptionPane.showOptionDialog(frame, "¿El paciente presenta alguna otra dolencia?", "Dolencia adicional", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
-				
-				ModelManager.c.GenerarDolor2(
-						SistemaDiagnostico.id_diagnostico, 
-						SistemaDiagnostico.id_dolor,
-						zona, origen_dolor, lodespiertanoche, mejoria, edad_inicio_dolor, meses_persistencia, aspecto, inflamacion, ritmo_evacuatorio);
-			
-				
-				if ( jOptionResult == JOptionPane.YES_OPTION) {
-					/*
-					SistemaDiagnostico.consulta.GenerarDolor1(
-							SistemaDiagnostico.id_diagnostico, 
-							SistemaDiagnostico.id_dolor, 
-							zona, 
-							origen_dolor, 
-							lodespiertanoche,
-							mejoria,
-							edad_inicio_dolor,
-							meses_persistencia,
-							aspecto,
-							inflamacion,
-							ritmo_evacuatorio
-							);
-					*/
-					
-					
-					DatosDolencias datosDolencias = new DatosDolencias(frame, false);
-				}
-		  		else {
-					DatosAntecedentes datosDolencias = new DatosAntecedentes(frame);
-				}
- 
-		  } else {
-			  ModelManager.c.GenerarDolor2(
-						SistemaDiagnostico.id_diagnostico, 
-						SistemaDiagnostico.id_dolor,
-						zona, origen_dolor, lodespiertanoche, mejoria, edad_inicio_dolor, meses_persistencia, aspecto, inflamacion, ritmo_evacuatorio);
-			
-			  
-			  DatosAntecedentes datosDolencias = new DatosAntecedentes(frame);
-		  }
+		
+		//id_diagnostico_actual = dbHelper.getUltimoId(DBHelper.TABLE_Diagnostico_NAME, DBHelper.TABLE_Diagnostico_id_diagnostico, cantidad_condiciones,condiciones,valores) + 1;
+		id_diagnostico_actual = dbHelper.getUltimoId(DBHelper.TABLE_Diagnostico_NAME, DBHelper.TABLE_Diagnostico_id_diagnostico) + 1;
+		
+		MainFrame.consulta.diagnostico = new Diagnostico(id_diagnostico_actual, id_paciente_actual);
+		
+		
+//		String condiciones2[] = {String.valueOf(DBHelper.TABLE_Dolencias_id_paciente),String.valueOf(DBHelper.TABLE_Dolencias_id_diagnostico)};
+//		String valores2[] = {String.valueOf(id_paciente_actual),String.valueOf(id_diagnostico_actual)};
+//		int cantidad_condiciones2 = 2;
+		
+		//id_dolor_actual = dbHelper.getUltimoId(DBHelper.TABLE_Dolencias_NAME , DBHelper.TABLE_Dolencias_id_dolor , cantidad_condiciones2 , condiciones2 , valores2 ) + 1;
+		id_dolor_actual = dbHelper.getUltimoId(DBHelper.TABLE_Dolencias_NAME , DBHelper.TABLE_Dolencias_id_dolor) + 1;
+		
+		Dolor dolor_actual = new Dolor(
+				id_paciente_actual, 
+				id_diagnostico_actual,
+				id_dolor_actual,
+				zona, 
+				origen_dolor, 
+				lodespiertanoche,
+				mejoria,
+				edad_inicio_dolor,
+				meses_persistencia,
+				aspecto,
+				inflamacion,
+				ritmo_evacuatorio
+				);
+		
+		if (esPrimeraDolencia) {
+			MainFrame.consulta.dolor1 = null;
+			MainFrame.consulta.dolor1 = dolor_actual;
+		}
+		else {
+			MainFrame.consulta.dolor2 = null;
+			MainFrame.consulta.dolor2 = dolor_actual;
+		}
+	
 	}
 	
 	private void btAtras() {
 		
-		frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+		//frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+		if (esPrimeraDolencia) {
+			frame.MostrarDatosPaciente(this);
+		}else {
+			frame.MostrarDatosPrimeraDolencia(this);
+		}
+		
 	
 	}
 
@@ -950,13 +1013,20 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 	@Override
 	public void windowClosed(WindowEvent arg0) {
 		// TODO Auto-generated method stub
-		prev_frame.setVisible(true);
+		//frame.setVisible(true);
 	}
 
 	@Override
 	public void windowClosing(WindowEvent arg0) {
 		// TODO Auto-generated method stub
-		prev_frame.setVisible(true);
+		//frame.setVisible(true);
+		String strMsg = "¿Está seguro que desea salir?";
+		int jOptionResult = jOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
+
+		if ( jOptionResult == JOptionPane.YES_OPTION) {
+			System.exit(0);
+		}
+
 	}
 
 	@Override
@@ -988,29 +1058,30 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		boolean resultado=true;
 		String strError="";
 		
-		if ( this.tfd_edad_inicio_dolor.getText().isEmpty()) {
+		
+		if ( this.tfd_edad_inicio_dolor.getText().isEmpty() && zona_elegida == ZONA_LUMBAR ) {
 			strError = "Falta completar la edad de inicio de la dolencia";
 		    resultado = false;
 		}
 		
-		if ( this.tfd_meses_persistencia.getText().isEmpty()) {
-			strError = "Falta completar la cantidad de meses de persistencia";
+		if ( this.tfd_meses_persistencia.getText().isEmpty() && zona_elegida == ZONA_LUMBAR ) {
+			strError = "Falta completar cuántos meses hace que el paciente tiene dolor";
 			resultado = false;
 		}
 		
-		if ( ! SistemaDiagnostico.validarTextoNumerico( this.tfd_edad_inicio_dolor.getText() )) {
-			strError = "Dato no numérico en el campo de la edad de inicio de la dolencia";
+		if ( (!MainFrame.validarTextoNumerico( this.tfd_edad_inicio_dolor.getText()) && zona_elegida == ZONA_LUMBAR   )) {
+			strError = "Edad de inicio de la dolencia inválida";
 			resultado = false;
 		}
 		
-		if ( ! SistemaDiagnostico.validarTextoNumerico( this.tfd_meses_persistencia.getText() )) {
-			strError = "Dato no numérico en el campo de la cantidad de meses de persistencia";
+		if ( (!MainFrame.validarTextoNumerico( this.tfd_meses_persistencia.getText()) && zona_elegida == ZONA_LUMBAR )) {
+			strError = "Cantidad de meses con dolor inválida";
 			resultado = false;
 		}
 		
 		if (resultado == false) {
 			jOptionPane.setMessageType(JOptionPane.ERROR_MESSAGE);
-			JOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
+			jOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
 		}
 		return resultado;
 	}

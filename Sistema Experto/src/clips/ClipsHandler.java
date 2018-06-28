@@ -33,8 +33,8 @@ public class ClipsHandler {
 		agregarDolor(consulta.dolor1);
 		agregarDolor(consulta.dolor2);
 		
-		agregarAntecedentesPaciente(consulta.antecedentes_paciente);
-		agregarAntecedentesFamiliares(consulta.antecedentes_familiares);
+		//agregarAntecedentesPaciente(consulta.antecedentes_paciente);
+		//agregarAntecedentesFamiliares(consulta.antecedentes_familiares);
 		
 		agregarEstudio(consulta.estudio_gen);
 		agregarEstudio(consulta.estudio_rmn);

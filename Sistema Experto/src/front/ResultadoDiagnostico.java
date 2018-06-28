@@ -14,11 +14,17 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import data.DBHelper;
+import model.AntecedentesFamiliares;
+import model.AntecedentesPaciente;
+import model.Consulta;
+import model.Estudio;
+
 public class ResultadoDiagnostico  extends JPanel implements WindowListener, ActionListener {
 	
-	public static String[] strDolorlumbarBE = { "inflamatorio", "mecanico" };
-	public static String[] strDolorlumbarFE = { "Inflamatorio", "Mecánico" };
-	public static int cantDolorlumbar = 2;
+	public static String[] strDolorlumbarBE = { "nil", "inflamatorio", "mecanico" };
+	public static String[] strDolorlumbarFE = { "No presenta", "Inflamatorio", "Mecánico" };
+	public static int cantDolorlumbar = 3;
 	
 	public static String[] strGradoSospechaBE = { "NoHaySospechaSpax", "HaySospechaSpax", "AltaProbSpax" };
 	public static String[] strGradoSospechaFE = { "No hay sospecha de SPAX", "Hay sospecha de SPAX", "Alta Probabilidad de SPAX" };
@@ -90,11 +96,11 @@ public class ResultadoDiagnostico  extends JPanel implements WindowListener, Act
 			};
 	public static int cantEstudiosSolicitados = 5;	
 	
-	
-	protected static JFrame frame;
-	protected JFrame prev_frame;
+	protected MainFrame frame;
 	
 	protected static JOptionPane jOptionPane;
+	
+	protected static int id_paciente_actual;
 	
 	public JLabel lbl_titulo;
 	
@@ -132,24 +138,23 @@ public class ResultadoDiagnostico  extends JPanel implements WindowListener, Act
 	
 	
 	
-	public ResultadoDiagnostico(JFrame prevframe) {
-		prev_frame = prevframe;
-		prev_frame.setVisible(false);
+	public ResultadoDiagnostico(MainFrame prevframe) {
 		
+		frame = prevframe;
+				
+		id_paciente_actual = MainFrame.consulta.paciente.id_paciente;
 		
 		setLayout(null);
-		
-		createAndShowGUI();
 		
 		current_x = 10;
 		current_y = 10;
 		
 		//Titulo
 		lbl_titulo = new JLabel("RESULTADO DEL DIAGNÓSTICO:");
-		lbl_titulo.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X - SistemaDiagnostico.padding_controles,SistemaDiagnostico.alto_controles);
+		lbl_titulo.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X - MainFrame.padding_controles,MainFrame.alto_controles);
 		add(lbl_titulo); 
 		
-		current_y = current_y + SistemaDiagnostico.alto_controles * 2;
+		current_y = current_y + MainFrame.alto_controles * 2;
 		
 		cargarDatosPaciente();
 		cargarDolorLumbar();
@@ -158,15 +163,16 @@ public class ResultadoDiagnostico  extends JPanel implements WindowListener, Act
 		cargarDerivacion();
 		cargarEstudioSolicitado();
 		
-		current_y = current_y + SistemaDiagnostico.alto_controles * 2;
+		current_y = current_y + MainFrame.alto_controles * 2;
 		
 		btFinalizar = new JButton("Finalizar");
 		btFinalizar.addActionListener(this);
-		btFinalizar.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2 - ( 150 / 2) + 100 ,current_y, 200, SistemaDiagnostico.alto_controles);
+		btFinalizar.setBounds(MainFrame.APP_WINDOW_X / 2 - ( 150 / 2) + 100 ,current_y, 200, MainFrame.alto_controles);
 		add(btFinalizar);
 		
 		estadoCarga = true;
 
+		this.setVisible(true);
 		
 	}
 	
@@ -175,118 +181,202 @@ public class ResultadoDiagnostico  extends JPanel implements WindowListener, Act
 		
 		//Nombre
 		lbl_nombre = new JLabel("Nombre:");
-		lbl_nombre.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		lbl_nombre.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_nombre); //, gridBagConstraints);
-		tfd_nombre = new JTextField ();
-		tfd_nombre.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		tfd_nombre = new JTextField (MainFrame.consulta.paciente.nombre);
+		tfd_nombre.setEditable(false);
+		tfd_nombre.setBounds(MainFrame.APP_WINDOW_X / 2,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(tfd_nombre); //, gridBagConstraints);
 		
 		
 		//Apellido
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 		
 		lbl_apellido = new JLabel("Apellido:");
-		lbl_apellido.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		lbl_apellido.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_apellido); //, gridBagConstraints);
-		tfd_apellido = new JTextField ();
-		tfd_apellido.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		tfd_apellido = new JTextField (MainFrame.consulta.paciente.apellido);
+		tfd_apellido.setEditable(false);
+		tfd_apellido.setBounds(MainFrame.APP_WINDOW_X / 2,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(tfd_apellido); //, gridBagConstraints);
 		
 	}
 	
 	private void cargarDolorLumbar() {
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		
+		String strDolorLumbar ="";
+		
+		for (int i = 0; i < cantDolorlumbar ; i++) {
+			if ( MainFrame.consulta.diagnostico.dolor_lumbar.compareTo(strDolorlumbarBE[i]) == 0) {
+				strDolorLumbar = strDolorlumbarFE[i];
+			}
+		}
+		
+		current_y = current_y + MainFrame.alto_controles;
 		//Dolor Lumbar
 		lbl_dolorlumbar = new JLabel("Tipo de dolor lumbar:");
-		lbl_dolorlumbar.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		lbl_dolorlumbar.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_dolorlumbar); //, gridBagConstraints);
-		tfd_dolorlumbar = new JTextField ();
-		tfd_dolorlumbar.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		tfd_dolorlumbar = new JTextField (strDolorLumbar);
+		tfd_dolorlumbar.setEditable(false);
+		tfd_dolorlumbar.setBounds(MainFrame.APP_WINDOW_X / 2,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(tfd_dolorlumbar); //, gridBagConstraints);
 
 	}
 	
 	private void cargarGradoSospecha() {
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		
+		String strGradoSospecha ="";
+		
+		for (int i = 0; i < cantGradoSospecha; i++) {
+			if ( MainFrame.consulta.diagnostico.grado_sospecha.compareTo(strGradoSospechaBE[i]) == 0) {
+				strGradoSospecha = strGradoSospechaFE[i];
+			}
+		}
+		
+		current_y = current_y + MainFrame.alto_controles;
 		//Grado Sospecha
 		lbl_gradosospecha = new JLabel("Grado de sospecha:");
-		lbl_gradosospecha.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		lbl_gradosospecha.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_gradosospecha); //, gridBagConstraints);
-		tfd_gradosospecha = new JTextField ();
-		tfd_gradosospecha.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		tfd_gradosospecha = new JTextField (strGradoSospecha);
+		tfd_gradosospecha.setEditable(false);
+		tfd_gradosospecha.setBounds(MainFrame.APP_WINDOW_X / 2,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(tfd_gradosospecha); //, gridBagConstraints);
 
 	}
 	
 	private void cargarEnfermedad() {
 		
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		String strEnfermedad ="";
+		
+		for (int i = 0; i < cantEnfermedad; i++) {
+			if ( MainFrame.consulta.diagnostico.enfermedad.compareTo(strEnfermedadBE[i]) == 0) {
+				strEnfermedad = strEnfermedadFE[i];
+			}
+		}
+		
+		current_y = current_y + MainFrame.alto_controles;
 		//Grado Sospecha
 		lbl_enfermedad = new JLabel("Enfermedad:");
-		lbl_enfermedad.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		lbl_enfermedad.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_enfermedad); //, gridBagConstraints);
-		tfd_enfermedad = new JTextField ();
-		tfd_enfermedad.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		tfd_enfermedad = new JTextField (strEnfermedad);
+		tfd_enfermedad.setEditable(false);
+		tfd_enfermedad.setBounds(MainFrame.APP_WINDOW_X / 2,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(tfd_enfermedad); //, gridBagConstraints);
 
 	}
 	
 	private void cargarDerivacion() {
 		
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		String strDerivacion ="";
+		
+		for (int i = 0; i < cantDerivacion; i++) {
+			if ( MainFrame.consulta.diagnostico.derivacion.compareTo(strDerivacionBE[i]) == 0) {
+				strDerivacion = strDerivacionFE[i];
+			}
+		}
+		
+		current_y = current_y + MainFrame.alto_controles;
 		//Grado Sospecha
 		lbl_derivacion= new JLabel("Derivación:");
-		lbl_derivacion.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		lbl_derivacion.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_derivacion); //, gridBagConstraints);
-		tfd_derivacion = new JTextField ();
-		tfd_derivacion.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		tfd_derivacion = new JTextField (strDerivacion);
+		tfd_derivacion.setEditable(false);
+		tfd_derivacion.setBounds(MainFrame.APP_WINDOW_X / 2,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(tfd_derivacion); //, gridBagConstraints);
 	}
 	
 	private void cargarEstudioSolicitado() {
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		
+		String strEstudioSolicitado ="";
+		
+		for (int i = 0; i < cantEstudiosSolicitados; i++) {
+			if ( MainFrame.consulta.diagnostico.estudios_solicitados.compareTo(strEstudiosSolicitadosBE[i]) == 0) {
+				strEstudioSolicitado = strEstudiosSolicitadosFE[i];
+			}
+		}
+		
+		current_y = current_y + MainFrame.alto_controles;
 		//Grado Sospecha
 		lbl_estudio_solicitado = new JLabel("Estudio Solicitado:");
-		lbl_estudio_solicitado.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		lbl_estudio_solicitado.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_estudio_solicitado); //, gridBagConstraints);
-		tfd_estudio_solicitado = new JTextField ();
-		tfd_estudio_solicitado.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		tfd_estudio_solicitado = new JTextField (strEstudioSolicitado);
+		tfd_estudio_solicitado.setEditable(false);
+		tfd_estudio_solicitado.setBounds(MainFrame.APP_WINDOW_X / 2,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(tfd_estudio_solicitado); //, gridBagConstraints);
 	}
 	
 	
-	
-	private void createAndShowGUI() {
-        //Create and set up the window.
-        frame = new JFrame(SistemaDiagnostico.APP_NAME + " "+ SistemaDiagnostico.APP_VERSION);
-        frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-
-
-        //Add contents to the window.
-        frame.add(this);
-        frame.addWindowListener(this);
-        
-        
-        frame.setSize(SistemaDiagnostico.APP_WINDOW_X, SistemaDiagnostico.APP_WINDOW_Y);		
-   		
-   		Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-   	    int x = (int) ((screen.getWidth() - frame.getWidth()) / 2);
-   	    int y = (int) ((screen.getHeight() - frame.getHeight()) / 2);
-   	    
-   	    frame.setLocation(x, y);
-   	 
-   	    frame.setPreferredSize(new Dimension(SistemaDiagnostico.APP_WINDOW_X,SistemaDiagnostico.APP_WINDOW_Y));
-         
-        //Display the window.
-        frame.pack();
-        frame.setVisible(true);
-    }
-
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
+		  if (estadoCarga) {
+			  if ( e.getSource() == btFinalizar) {
+				  btFinalizar();
+			  }
+		  }
 		
 	}
+	
+	
+	private void btFinalizar(){
+		
+					
+			GuardarResultados();
+		
+			String strMsg = "El diagnóstico se ha guardado exitosamente.\n¿Desea realizar otro diagóstico?\nSi elige 'No' la aplicación se cerrará.";
+			int jOptionResult = jOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
+
+			if ( jOptionResult == JOptionPane.YES_OPTION) {
+		
+				frame.ReiniciarDiagnostico();
+						
+			}else {
+				System.exit(1);
+			}
+	}
+	
+	private void GuardarResultados() {
+		
+		
+		DBHelper dbHelper = new DBHelper();
+		
+		dbHelper.deleteAntecedentes(id_paciente_actual);
+		
+		if (MainFrame.consulta.antecedentes_paciente != null ) {
+			if (MainFrame.consulta.antecedentes_paciente.size() > 0 ) {
+				for ( AntecedentesPaciente ap : MainFrame.consulta.antecedentes_paciente) {
+					dbHelper.InsertAntecedentePaciente(ap);
+				}
+			}
+		}
+		
+		if (MainFrame.consulta.antecedentes_familiares != null ) {
+			if (MainFrame.consulta.antecedentes_familiares.size() > 0 ) {
+				for ( AntecedentesFamiliares af : MainFrame.consulta.antecedentes_familiares) {
+					dbHelper.InsertAntecedenteFamiliares(af);
+				}
+			}
+		}
+		
+		if (MainFrame.consulta.estudio_gen != null) {
+			
+			Estudio estudio = dbHelper.getEstudioGen(id_paciente_actual);
+			
+			if (estudio == null) {
+				dbHelper.InsertEstudio(MainFrame.consulta.estudio_gen);
+			}
+		}
+		
+		dbHelper.InsertDiagnostico(MainFrame.consulta.diagnostico);
+		
+	}
+	
+	
 
 	@Override
 	public void windowActivated(WindowEvent e) {
@@ -295,15 +385,20 @@ public class ResultadoDiagnostico  extends JPanel implements WindowListener, Act
 	}
 
 	@Override
-	public void windowClosed(WindowEvent e) {
+	public void windowClosed(WindowEvent arg0) {
 		// TODO Auto-generated method stub
-		
+		//frame.setVisible(true);
 	}
 
 	@Override
-	public void windowClosing(WindowEvent e) {
+	public void windowClosing(WindowEvent arg0) {
 		// TODO Auto-generated method stub
-		
+		String strMsg = "¿Está seguro que desea salir?";
+		int jOptionResult = jOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
+
+		if ( jOptionResult == JOptionPane.YES_OPTION) {
+			System.exit(0);
+		}
 	}
 
 	@Override

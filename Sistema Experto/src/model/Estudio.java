@@ -22,12 +22,12 @@ public class Estudio {
 	public static final String RESULTADO_NEGATIVO = "Negativo";
 	
 	
-	public Estudio (int id_paciente, int id_estudio, String tipo_analisis ) {
+	public Estudio (int id_paciente, int id_estudio, String tipo_analisis , String estado, String resultado) {
 		this.id_estudio = id_estudio;
 		this.id_paciente = id_paciente;
 		this.tipo_analisis = tipo_analisis;
-		this.estado = ESTADO_NINGUNO;
-		this.resultado =  RESULTADO_PENDIENTE;	
+		this.estado = estado;
+		this.resultado =  resultado;	
 	}
 	
 }

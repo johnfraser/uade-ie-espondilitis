@@ -19,6 +19,12 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
+import data.DBHelper;
+import model.Diagnostico;
+import model.Dolor;
+import model.Estudio;
+import model.Laboratorio;
+
 public class DatosEstudios extends JPanel implements WindowListener, ActionListener{
 	
 	public static String[] strRadios = { "No", "Si" };
@@ -28,9 +34,10 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 	public static String[] strResultadoGen = { "Positivo", "Negativo" };
 	public static int cantResultadoGen = 2;
 	
+	protected MainFrame frame;
 	
-	protected static JFrame frame;
-	protected JFrame prev_frame;
+	public static int id_paciente_actual;
+	public static int id_estudio_gen_actual;
 	
 	protected static JOptionPane jOptionPane;
 	
@@ -79,65 +86,92 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 	
 	public boolean estadoCarga = false;
 	
-	public DatosEstudios (JFrame prevframe) {
+	public boolean tieneLaboratorio = false;
+	public boolean tieneGen = false;
+	public boolean tieneRX = false;
+	public boolean tieneRMN = false;
+	
+	public boolean mostrarEstudioGenRealizado = false; 
+	
+	private DBHelper dbHelper;
+	
+	public DatosEstudios (MainFrame prevframe) {
 		
-		prev_frame = prevframe;
-		prev_frame.setVisible(false);
+		frame = prevframe;
 		
+		id_paciente_actual = MainFrame.consulta.paciente.id_paciente;
+		id_estudio_gen_actual = 0;
+		
+		jOptionPane = new JOptionPane();
+		
+		dbHelper = new DBHelper();
 		
 		setLayout(null);
-		
-		createAndShowGUI();
 		
 		current_x = 10;
 		current_y = 10;
 		
 		//Titulo
 		lbl_titulo = new JLabel("Por último, complete la información sobre los estudios del paciente:");
-		lbl_titulo.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X - SistemaDiagnostico.padding_controles,SistemaDiagnostico.alto_controles);
+		lbl_titulo.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X - MainFrame.padding_controles,MainFrame.alto_controles);
 		add(lbl_titulo); 
 		
-		current_y = current_y + SistemaDiagnostico.alto_controles * 2;
+		current_y = current_y + MainFrame.alto_controles * 2;
 		
 		cargarLaboratorio();
 		cargarEstudioGEN();
 		cargarEstudioRX();
 		cargarEstudioRMN();
 		
-	    current_y = current_y + SistemaDiagnostico.alto_controles * 2;
+	    current_y = current_y + MainFrame.alto_controles * 2;
 	    
 		btAtras = new JButton("Atrás");
 		btAtras.addActionListener(this);
-		btAtras.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2 - ( 150 / 2) - 150 ,current_y, 200 , SistemaDiagnostico.alto_controles);
+		btAtras.setBounds(MainFrame.APP_WINDOW_X / 2 - ( 150 / 2) - 150 ,current_y, 200 , MainFrame.alto_controles);
 		add(btAtras);
 		
 		btProcesar = new JButton("Procesar");
 		btProcesar.addActionListener(this);
-		btProcesar.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2 - ( 150 / 2) + 100 ,current_y, 200, SistemaDiagnostico.alto_controles);
+		btProcesar.setBounds(MainFrame.APP_WINDOW_X / 2 - ( 150 / 2) + 100 ,current_y, 200, MainFrame.alto_controles);
 		add(btProcesar);
 		
+		cambiarEstadoLaboratorio(false);
+		cambiarEstadoEstudioGEN(mostrarEstudioGenRealizado);
+		cambiarEstadoEstudioRX(false);
+		cambiarEstadoEstudioRMN(false);
+
 		estadoCarga = true;
+		
+		this.setVisible(true);
+		
+		if ( mostrarEstudioGenRealizado ) {
+			
+			String strMensaje="El paciente ya se ha realizado el estudio del gen HLAB27.";
+			jOptionPane.setMessageType(JOptionPane.INFORMATION_MESSAGE);
+			jOptionPane.showMessageDialog(frame, strMensaje, "Datos existentes", JOptionPane.INFORMATION_MESSAGE );
+
+		}
 		
 	}
 	
 	private void cargarLaboratorio() {
 		
 		//Laboratorio
-		current_y = current_y + SistemaDiagnostico.alto_controles * 2;
+		current_y = current_y + MainFrame.alto_controles * 2;
 		lbl_laboratorio = new JLabel("¿El paciente se hizo analisis ERS y PCR?");
-		lbl_laboratorio.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		lbl_laboratorio.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_laboratorio);
 		
 		rdb_laboratorio  = new JRadioButton[cantRadios];
 		
 		rdb_laboratorio[0] = new JRadioButton(strRadios[0]);
 		rdb_laboratorio[0].setSelected(true);
-		rdb_laboratorio[0].setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, 150 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		rdb_laboratorio[0].setBounds(MainFrame.APP_WINDOW_X / 2,current_y, 150 - MainFrame.padding_controles, MainFrame.alto_controles);
 		rdb_laboratorio[0].addActionListener(this);
 		add(rdb_laboratorio[0]);
 		
 		rdb_laboratorio[1] = new JRadioButton(strRadios[1]);
-		rdb_laboratorio[1].setBounds(SistemaDiagnostico.APP_WINDOW_X / 2 + 150 , current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		rdb_laboratorio[1].setBounds(MainFrame.APP_WINDOW_X / 2 + 150 , current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		rdb_laboratorio[1].addActionListener(this);
 		add(rdb_laboratorio[1]);
 		
@@ -145,50 +179,78 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 	    btgLaboratorio.add(rdb_laboratorio[0]);
 	    btgLaboratorio.add(rdb_laboratorio[1]);
 	    
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 		lbl_laboratorio_ERS = new JLabel("Valor ERS (en mm): ");
-		lbl_laboratorio_ERS.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		lbl_laboratorio_ERS.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_laboratorio_ERS); 	
 		tfl_laboratorio_ERS = new JTextField ();
-		tfl_laboratorio_ERS.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		tfl_laboratorio_ERS.setBounds(MainFrame.APP_WINDOW_X / 2,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(tfl_laboratorio_ERS); //, gridBagConstraints);
 		
-		current_y = current_y + SistemaDiagnostico.alto_controles;
+		current_y = current_y + MainFrame.alto_controles;
 		lbl_laboratorio_PCR = new JLabel("Valor PCR (en mg/dl): ");
-		lbl_laboratorio_PCR.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		lbl_laboratorio_PCR.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_laboratorio_PCR); 	
 		tfl_laboratorio_PCR = new JTextField ();
-		tfl_laboratorio_PCR.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		tfl_laboratorio_PCR.setBounds(MainFrame.APP_WINDOW_X / 2,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(tfl_laboratorio_PCR);
 	}
 	
 	private void cargarEstudioGEN() {
+
 		//Estudio GEN
-		current_y = current_y + SistemaDiagnostico.alto_controles * 2;
-		lbl_estudio_gen = new JLabel("¿El paciente se hizo analisis genético?");
-		lbl_estudio_gen.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		
+		int idResultado = 0;
+		
+		mostrarEstudioGenRealizado = false;
+		
+		Estudio estudio = dbHelper.getEstudioGen(id_paciente_actual);
+		
+		if (estudio != null) {
+		
+			id_estudio_gen_actual = estudio.id_estudio;
+			
+			for (int i = 0; i < cantResultadoGen ; i++) {
+				if ( estudio.resultado.compareTo(strResultadoGen[i]) == 0) {
+					idResultado = i;
+				}
+			}
+			
+			mostrarEstudioGenRealizado = true;
+				
+		}
+		
+				
+		current_y = current_y + MainFrame.alto_controles * 2;
+		lbl_estudio_gen = new JLabel("¿El paciente se hizo analisis genético? (HLAB27)");
+		lbl_estudio_gen.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_estudio_gen);
 		
 		rdb_estudio_gen  = new JRadioButton[cantRadios];
 		
 		rdb_estudio_gen[0] = new JRadioButton(strRadios[0]);
-		rdb_estudio_gen[0].setSelected(true);
+		if (estudio == null) {
+			rdb_estudio_gen[0].setSelected(true);
+		}
 		rdb_estudio_gen[0].addActionListener(this);
-		rdb_estudio_gen[0].setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, 150 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		rdb_estudio_gen[0].setBounds(MainFrame.APP_WINDOW_X / 2,current_y, 150 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(rdb_estudio_gen[0]);
 		
 		rdb_estudio_gen[1] = new JRadioButton(strRadios[1]);
+		if (estudio != null) {
+			rdb_estudio_gen[1].setSelected(true);
+		}
 		rdb_estudio_gen[1].addActionListener(this);
-		rdb_estudio_gen[1].setBounds(SistemaDiagnostico.APP_WINDOW_X / 2 + 150 , current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		rdb_estudio_gen[1].setBounds(MainFrame.APP_WINDOW_X / 2 + 150 , current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(rdb_estudio_gen[1]);
 		
 	    ButtonGroup btgEstudioGen = new ButtonGroup();
 	    btgEstudioGen.add(rdb_estudio_gen[0]);
 	    btgEstudioGen.add(rdb_estudio_gen[1]);
 	    
-		current_y = current_y + SistemaDiagnostico.alto_controles;
-		lbl_estudio_gen_nombre = new JLabel("HLAB27");
-		lbl_estudio_gen_nombre.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		current_y = current_y + MainFrame.alto_controles;
+		lbl_estudio_gen_nombre = new JLabel("           Resultado: ");
+		lbl_estudio_gen_nombre.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_estudio_gen_nombre);
 	    
 		cmb_estudio_gen_valor = new JComboBox<String>();
@@ -201,8 +263,11 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 			defaultComboBoxModel_cmb_estudio_gen_valor.addElement(strResultadoGen[i]);
 		}
 		
-		cmb_estudio_gen_valor.setSelectedItem(0);
-		cmb_estudio_gen_valor.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio , SistemaDiagnostico.alto_controles);
+		cmb_estudio_gen_valor.setSelectedIndex(idResultado);
+		if (mostrarEstudioGenRealizado) {
+			cmb_estudio_gen_valor.setEnabled(true);
+		}
+		cmb_estudio_gen_valor.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio , MainFrame.alto_controles);
 		add(cmb_estudio_gen_valor);
 	    
 	}
@@ -210,9 +275,9 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 	private void cargarEstudioRX(){
 		
 		//Estudio RX
-		current_y = current_y + SistemaDiagnostico.alto_controles * 2;
-		lbl_estudio_rx = new JLabel("¿El paciente se hizo una radiografía?");
-		lbl_estudio_rx.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		current_y = current_y + MainFrame.alto_controles * 2;
+		lbl_estudio_rx = new JLabel("¿El paciente se hizo una radiografía de columna?");
+		lbl_estudio_rx.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_estudio_rx);
 		
 		rdb_estudio_rx = new JRadioButton[cantRadios];
@@ -220,21 +285,21 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		rdb_estudio_rx[0] = new JRadioButton(strRadios[0]);
 		rdb_estudio_rx[0].setSelected(true);
 		rdb_estudio_rx[0].addActionListener(this);
-		rdb_estudio_rx[0].setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, 150 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		rdb_estudio_rx[0].setBounds(MainFrame.APP_WINDOW_X / 2,current_y, 150 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(rdb_estudio_rx[0]);
 		
 		rdb_estudio_rx[1] = new JRadioButton(strRadios[1]);
 		rdb_estudio_rx[1].addActionListener(this);
-		rdb_estudio_rx[1].setBounds(SistemaDiagnostico.APP_WINDOW_X / 2 + 150 , current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		rdb_estudio_rx[1].setBounds(MainFrame.APP_WINDOW_X / 2 + 150 , current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(rdb_estudio_rx[1]);
 		
 	    ButtonGroup btgEstudioRX = new ButtonGroup();
 	    btgEstudioRX.add(rdb_estudio_rx[0]);
 	    btgEstudioRX.add(rdb_estudio_rx[1]);
 	    
-		current_y = current_y + SistemaDiagnostico.alto_controles;
-		lbl_estudio_rx_nombre = new JLabel("RX");
-		lbl_estudio_rx_nombre.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		current_y = current_y + MainFrame.alto_controles;
+		lbl_estudio_rx_nombre = new JLabel("           Resultado: ");
+		lbl_estudio_rx_nombre.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_estudio_rx_nombre);
 	    
 		cmb_estudio_rx = new JComboBox<String>();
@@ -248,7 +313,7 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		}
 		
 		cmb_estudio_rx.setSelectedItem(0);
-		cmb_estudio_rx.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio , SistemaDiagnostico.alto_controles);
+		cmb_estudio_rx.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio , MainFrame.alto_controles);
 		add(cmb_estudio_rx);
 		
 	}
@@ -256,9 +321,9 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 	public void cargarEstudioRMN() {
 		
 		//Estudio RX
-		current_y = current_y + SistemaDiagnostico.alto_controles * 2;
-		lbl_estudio_rmn = new JLabel("¿El paciente se hizo una resonancia?");
-		lbl_estudio_rmn.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		current_y = current_y + MainFrame.alto_controles * 2;
+		lbl_estudio_rmn = new JLabel("¿El paciente se hizo una resonancia magnética de columna?");
+		lbl_estudio_rmn.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_estudio_rmn);
 		
 		rdb_estudio_rmn = new JRadioButton[cantRadios];
@@ -266,21 +331,21 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		rdb_estudio_rmn[0] = new JRadioButton(strRadios[0]);
 		rdb_estudio_rmn[0].setSelected(true);
 		rdb_estudio_rmn[0].addActionListener(this);
-		rdb_estudio_rmn[0].setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, 150 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		rdb_estudio_rmn[0].setBounds(MainFrame.APP_WINDOW_X / 2,current_y, 150 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(rdb_estudio_rmn[0]);
 		
 		rdb_estudio_rmn[1] = new JRadioButton(strRadios[1]);
 		rdb_estudio_rmn[1].addActionListener(this);
-		rdb_estudio_rmn[1].setBounds(SistemaDiagnostico.APP_WINDOW_X / 2 + 150 , current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		rdb_estudio_rmn[1].setBounds(MainFrame.APP_WINDOW_X / 2 + 150 , current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(rdb_estudio_rmn[1]);
 		
 	    ButtonGroup btgEstudioRMN = new ButtonGroup();
 	    btgEstudioRMN.add(rdb_estudio_rmn[0]);
 	    btgEstudioRMN.add(rdb_estudio_rmn[1]);
 	    
-		current_y = current_y + SistemaDiagnostico.alto_controles;
-		lbl_estudio_rmn_nombre = new JLabel("RMN");
-		lbl_estudio_rmn_nombre.setBounds(current_x,current_y,SistemaDiagnostico.APP_WINDOW_X / 2 - SistemaDiagnostico.padding_controles, SistemaDiagnostico.alto_controles);
+		current_y = current_y + MainFrame.alto_controles;
+		lbl_estudio_rmn_nombre = new JLabel("           Resultado: ");
+		lbl_estudio_rmn_nombre.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_estudio_rmn_nombre);
 	    
 		cmb_estudio_rmn = new JComboBox<String>();
@@ -294,36 +359,122 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		}
 		
 		cmb_estudio_rmn.setSelectedItem(0);
-		cmb_estudio_rmn.setBounds(SistemaDiagnostico.APP_WINDOW_X / 2,current_y, SistemaDiagnostico.padding_radio , SistemaDiagnostico.alto_controles);
+		cmb_estudio_rmn.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio , MainFrame.alto_controles);
 		add(cmb_estudio_rmn);
 	}
+
+	public boolean validar() {
+		
+		boolean resultado=true;
+		
+		if ( tieneLaboratorio ) {
+			
+			if (tfl_laboratorio_ERS.getText().isEmpty()) {
+				String strError="Falta ingresar valor de ERS";
+				jOptionPane.setMessageType(JOptionPane.ERROR_MESSAGE);
+				jOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
+				resultado=false;
+			}else {
+				if (!MainFrame.validarTextoNumerico(tfl_laboratorio_ERS.getText())) {
+					String strError="Valor de ERS inválido";
+					jOptionPane.setMessageType(JOptionPane.ERROR_MESSAGE);
+					jOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
+					resultado=false;
+				}
+			}
+		}
+		
+		return resultado;
+		
+	}
 	
-	private void createAndShowGUI() {
-	        //Create and set up the window.
-	        frame = new JFrame(SistemaDiagnostico.APP_NAME + " "+ SistemaDiagnostico.APP_VERSION);
-	        frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+	public void GuardarEstudios() {
+
+		float ERS;
+		float PCR;
+		String gen;
+		String rx;
+		String rmn;
+		Object selectedItem;
+		
 
 
-	        //Add contents to the window.
-	        frame.add(this);
-	        frame.addWindowListener(this);
-	        
-	        
-	        frame.setSize(SistemaDiagnostico.APP_WINDOW_X, SistemaDiagnostico.APP_WINDOW_Y);		
-	   		
-	   		Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-	   	    int x = (int) ((screen.getWidth() - frame.getWidth()) / 2);
-	   	    int y = (int) ((screen.getHeight() - frame.getHeight()) / 2);
-	   	    
-	   	    frame.setLocation(x, y);
-	   	 
-	   	    frame.setPreferredSize(new Dimension(SistemaDiagnostico.APP_WINDOW_X,SistemaDiagnostico.APP_WINDOW_Y));
-	         
-	        //Display the window.
-	        frame.pack();
-	        frame.setVisible(true);
-	    }
+		ERS = 0f;
+		PCR = 0f;
+		if (tieneLaboratorio) {
+			ERS = Float.valueOf(tfl_laboratorio_ERS.getText());
+			PCR = Float.valueOf(tfl_laboratorio_PCR.getText());
 
+			int id_laboratorio = dbHelper.getUltimoId(DBHelper.TABLE_Laboratorio_NAME, DBHelper.TABLE_Laboratorio_id_laboratorio) + 1;
+
+			MainFrame.consulta.laboratorio = new Laboratorio(id_laboratorio, id_paciente_actual, ERS, PCR);
+
+		}
+
+
+
+		gen = "";
+		if (tieneGen) {
+
+			selectedItem = cmb_estudio_gen_valor.getSelectedItem();
+
+			if (selectedItem.toString().equals("Negativo")) {
+				gen = Estudio.RESULTADO_NEGATIVO;
+			}
+			if (selectedItem.toString().equals("Positivo")) {
+				gen = Estudio.RESULTADO_POSITIVO;
+			}
+
+			int id_estudio=0;
+			
+			if (mostrarEstudioGenRealizado) {
+				
+				id_estudio = id_estudio_gen_actual;
+			}else {
+				id_estudio = dbHelper.getUltimoId(DBHelper.TABLE_Estudios_NAME , DBHelper.TABLE_Estudios_id_estudios ) + 1;
+			}
+
+			MainFrame.consulta.estudio_gen = new Estudio(id_paciente_actual, id_estudio, Estudio.ESTUDIO_GEN, Estudio.ESTADO_REALIZADO, gen); 
+		}
+
+		rx = "";
+		if (tieneRX) {
+
+			selectedItem = cmb_estudio_rx.getSelectedItem();
+
+			if (selectedItem.toString().equals("Normal")) {
+				rx = Estudio.RESULTADO_NORMAL;
+			}
+			if (selectedItem.toString().equals("Sacroilitis")) {
+				rx = Estudio.RESULTADO_SACROILITIS;
+			}
+
+			int id_estudio = dbHelper.getUltimoId(DBHelper.TABLE_Estudios_NAME , DBHelper.TABLE_Estudios_id_estudios ) + 1;
+
+			MainFrame.consulta.estudio_rx = new Estudio(id_paciente_actual, id_estudio, Estudio.ESTUDIO_RX, Estudio.ESTADO_REALIZADO, rx); 
+
+		}
+
+		rmn = "";
+		if (tieneRMN) {
+
+			selectedItem = cmb_estudio_rmn.getSelectedItem();
+
+			if (selectedItem.toString().equals("Normal")) {
+				rmn = Estudio.RESULTADO_NORMAL;
+			}
+			if (selectedItem.toString().equals("Sacroilitis")) {
+				rmn = Estudio.RESULTADO_SACROILITIS;
+			}
+
+			int id_estudio = dbHelper.getUltimoId(DBHelper.TABLE_Estudios_NAME , DBHelper.TABLE_Estudios_id_estudios ) + 1;
+
+			MainFrame.consulta.estudio_rmn = new Estudio(id_paciente_actual, id_estudio, Estudio.ESTUDIO_RMN, Estudio.ESTADO_REALIZADO, rmn); 
+
+		}
+
+	}
+	
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -331,7 +482,7 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		  if (estadoCarga) {
 
 			  if ( e.getSource() == btProcesar) {
-				  btSiguiente();
+				  btProcesar();
 			  }
 
 			  if ( e.getSource() == btAtras) {
@@ -341,55 +492,77 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 			  if (e.getSource() == rdb_laboratorio[0]) {
 				  
 				  cambiarEstadoLaboratorio(false);
+				  tieneLaboratorio = false;
 				  
 			  }
 			  if (e.getSource() == rdb_laboratorio[1]) {
 				 
 				  cambiarEstadoLaboratorio(true);
+				  tieneLaboratorio = true;
 			  }
 			  
 			  if (e.getSource() == rdb_estudio_gen[0]) {
 				  
 				  cambiarEstadoEstudioGEN(false);
+				  tieneGen = false;
 				  
 			  }
 			  if (e.getSource() == rdb_estudio_gen[1]) {
 				 
 				  cambiarEstadoEstudioGEN(true);
+				  tieneGen = true;
 			  }
 			  
 			  if (e.getSource() == rdb_estudio_rx[0]) {
 				  
 				  cambiarEstadoEstudioRX(false);
+				  tieneRX = false;
 				  
 			  }
 			  if (e.getSource() == rdb_estudio_rx[1]) {
 				 
 				  cambiarEstadoEstudioRX(true);
+				  tieneRX = true;
 			  }
 			  
 			  if (e.getSource() == rdb_estudio_rmn[0]) {
 				  
 				  cambiarEstadoEstudioRMN(false);
+				  tieneRMN = false;
 				  
 			  }
 			  if (e.getSource() == rdb_estudio_rmn[1]) {
 				 
 				  cambiarEstadoEstudioRMN(true);
+				  tieneRMN = false;
 			  }
 			  
 		  }
 	}
 	
-	private void btSiguiente() {
+	private void btProcesar() {
 		
-		ResultadoDiagnostico resultadoDiagnostico = new ResultadoDiagnostico(frame);
-		  
+		if ( validar() ) {
+			String strMsg = "Se procesará el diagnóstico. ¿Desea continuar?";
+			int jOptionResult = jOptionPane.showOptionDialog(frame, strMsg, "Atención", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
+
+			if ( jOptionResult == JOptionPane.YES_OPTION) {		
+
+				GuardarEstudios();
+
+				ProcesarCLIPS();
+
+				//ResultadoDiagnostico resultadoDiagnostico = new ResultadoDiagnostico(frame);
+				frame.MostrarResultadoDiagnostico(this);
+
+			}
+		}
 	}
-	
+
 	private void btAtras() {
 		
-		frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+		//frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+		frame.MostrarDatosAntecedentes(this,true);
 	
 	}
 	
@@ -420,6 +593,20 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 	
 	
 
+	
+	public void ProcesarCLIPS() {
+		
+		
+		MainFrame.consulta.diagnostico.dolor_lumbar = Diagnostico.DOLOR_LUMBAR_MECANICO;
+		MainFrame.consulta.diagnostico.grado_sospecha = Diagnostico.GRADO_SOSPECHA_AltaProbSpax;
+		MainFrame.consulta.diagnostico.enfermedad = Diagnostico.ENFERMEDAD_EspondilitisAnquilosante;
+		MainFrame.consulta.diagnostico.derivacion = Diagnostico.DERIVACION_Gastroenterologo;
+		MainFrame.consulta.diagnostico.estudios_solicitados = Diagnostico.ESTUDIOS_SOLICITADOS_HLAB27;
+		
+	}
+	
+	
+	
 	@Override
 	public void windowActivated(WindowEvent e) {
 		// TODO Auto-generated method stub
@@ -427,15 +614,20 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 	}
 
 	@Override
-	public void windowClosed(WindowEvent e) {
+	public void windowClosed(WindowEvent arg0) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
-	public void windowClosing(WindowEvent e) {
+	public void windowClosing(WindowEvent arg0) {
 		// TODO Auto-generated method stub
-		
+		String strMsg = "¿Está seguro que desea salir?";
+		int jOptionResult = jOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
+
+		if ( jOptionResult == JOptionPane.YES_OPTION) {
+			System.exit(0);
+		}
+
 	}
 
 	@Override

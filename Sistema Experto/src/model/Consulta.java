@@ -1,5 +1,7 @@
 package model;
 
+import java.util.ArrayList;
+
 public class Consulta {
 	
 	public Paciente paciente;
@@ -9,8 +11,8 @@ public class Consulta {
 	public Estudio estudio_gen;
 	public Estudio estudio_rx;
 	public Estudio estudio_rmn;
-	public AntecedentesPaciente antecedentes_paciente;
-	public AntecedentesFamiliares antecedentes_familiares;
+	public ArrayList<AntecedentesPaciente> antecedentes_paciente;
+	public ArrayList<AntecedentesFamiliares> antecedentes_familiares;
 	public Diagnostico diagnostico;
 	
 	public Consulta() {
@@ -26,6 +28,8 @@ public class Consulta {
 		this.antecedentes_familiares = null;
 		this.diagnostico = null;
 	}
+	
+	/*
 	
 	public void GenerarPaciente(int id_paciente, int dni, String nombre, String apellido, int edad, String sexo) {
 		
@@ -69,23 +73,12 @@ public class Consulta {
 		
 	}
 	
-	public void GenerarAntecedentesPaciente(int id_paciente, int id_antecedentes_paciente, String enfermedad ) {
-		
-		this.antecedentes_paciente = new AntecedentesPaciente(id_paciente, id_antecedentes_paciente, enfermedad);
-		
-	}
-	
-	public void GenerarAntecedentesFamiliares(int id_paciente, int id_antecedentes_familiares, String enfermedad ) {
-		
-		this.antecedentes_familiares = new AntecedentesFamiliares(id_paciente, id_antecedentes_familiares, enfermedad);
-	}
-	
 	public void GenerarDiagnostico(int id_diagnostico, int id_paciente) {
 		
 		this.diagnostico = new Diagnostico(id_diagnostico, id_paciente);
 		
 	}
 	
-
+*/
 
 }

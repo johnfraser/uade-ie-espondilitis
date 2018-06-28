@@ -51,7 +51,7 @@ public class Diagnostico
 	public static final String ESTUDIOS_SOLICITADOS_RX = "RX";
 	public static final String ESTUDIOS_SOLICITADOS_RMN = "RMN";
 	
-	public Date ultima_modificacion;
+	public java.sql.Date ultima_modificacion;
 	
 	
 	public Diagnostico(int id_diagnostico, int id_paciente ) { 
@@ -64,6 +64,17 @@ public class Diagnostico
 		this.estudios_solicitados = ESTUDIOS_SOLICITADOS_nil;
 		java.util.Date utilDate = new java.util.Date(); 
 		this.ultima_modificacion = new java.sql.Date(utilDate.getTime());
+	}
+	
+	public Diagnostico(int id_diagnostico, int id_paciente, String dolor_lumbar, String grado_sospecha , String enfermedad , String derivacion, String estudios_solicitados, java.sql.Date ultima_modificacion ) { 
+		this.id_diagnostico = id_diagnostico;
+		this.id_paciente = id_paciente;
+		this.dolor_lumbar = dolor_lumbar;
+		this.grado_sospecha = grado_sospecha;
+		this.enfermedad = enfermedad;
+		this.derivacion = derivacion;
+		this.estudios_solicitados = estudios_solicitados;
+		this.ultima_modificacion = ultima_modificacion;
 	}
 	
 	public void actualizar(String dolor_lumbar , String grado_sospecha, String enfermedad , String derivacion , String estudios_solicitados ) {
