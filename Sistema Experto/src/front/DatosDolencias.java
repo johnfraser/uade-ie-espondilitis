@@ -1,10 +1,7 @@
 package front;
 
-import java.awt.Dimension;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
@@ -12,7 +9,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -20,11 +16,12 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
 import data.DBHelper;
-import model.Consulta;
 import model.Diagnostico;
 import model.Dolor;
 
 public class DatosDolencias extends JPanel implements WindowListener, ActionListener{
+	private static final long serialVersionUID = 1L;
+	
 	
 	public static final int ZONA_LUMBAR = 0;
 	public static final int ZONA_DORSAL_CERVICAL = 1;
@@ -199,7 +196,7 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		cmbzona = new JComboBox<String>();
 		cmbzona.setEditable(false);
 		cmbzona.addActionListener(this);
-		DefaultComboBoxModel defaultComboBoxModelzona = new DefaultComboBoxModel();
+		DefaultComboBoxModel<String> defaultComboBoxModelzona = new DefaultComboBoxModel<String>();
 		cmbzona.setModel(defaultComboBoxModelzona);
 		
 		if (esPrimeraDolencia ) {
@@ -294,7 +291,7 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		cmborigen_dolor = new JComboBox<String>();
 		cmborigen_dolor.setEditable(false);
 		cmborigen_dolor.addActionListener(this);
-		DefaultComboBoxModel defaultComboBoxModelcmborigen_dolor = new DefaultComboBoxModel();
+		DefaultComboBoxModel<String> defaultComboBoxModelcmborigen_dolor = new DefaultComboBoxModel<String>();
 		cmborigen_dolor.setModel(defaultComboBoxModelcmborigen_dolor);
 		
 		defaultComboBoxModelcmborigen_dolor.addElement("Motivo Desconocido");
@@ -534,7 +531,7 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 			cmbritmo_evacuatorio = new JComboBox<String>();
 			cmbritmo_evacuatorio.setEditable(false);
 			cmbritmo_evacuatorio.addActionListener(this);
-			DefaultComboBoxModel defaultComboBoxModelcmbritmo_evacuatorio = new DefaultComboBoxModel();
+			DefaultComboBoxModel<String> defaultComboBoxModelcmbritmo_evacuatorio = new DefaultComboBoxModel<String>();
 			cmbritmo_evacuatorio.setModel(defaultComboBoxModelcmbritmo_evacuatorio);
 			
 			defaultComboBoxModelcmbritmo_evacuatorio.addElement("Normal");
@@ -761,25 +758,25 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 
 				jOptionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
 				jOptionPane.setOptionType(JOptionPane.YES_NO_OPTION);
-				int jOptionResult = jOptionPane.showOptionDialog(frame, "¿El paciente presenta alguna otra dolencia?", "Dolencia adicional", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
+				int jOptionResult = JOptionPane.showOptionDialog(frame, "¿El paciente presenta alguna otra dolencia?", "Dolencia adicional", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
 
 				if ( jOptionResult == JOptionPane.YES_OPTION) {
 
 					//DatosDolencias datosDolencias = new DatosDolencias(frame, false);
 					//this.setVisible(false);
-					frame.MostrarDatosSegundaDolencia(this);
+					MainFrame.MostrarDatosSegundaDolencia(this);
 					
 				}
 				else {
 					//DatosAntecedentes datosAntecedentes = new DatosAntecedentes(frame);
-					frame.BorrarSegundaDolencia();
-					frame.MostrarDatosAntecedentes(this,esPrimeraDolencia);
+					MainFrame.BorrarSegundaDolencia();
+					MainFrame.MostrarDatosAntecedentes(this,esPrimeraDolencia);
 				}
 
 			} else {
 				//DatosAntecedentes datosAntecedentes = new DatosAntecedentes(frame);
-				frame.BorrarSegundaDolencia();
-				frame.MostrarDatosAntecedentes(this,esPrimeraDolencia);
+				MainFrame.BorrarSegundaDolencia();
+				MainFrame.MostrarDatosAntecedentes(this,esPrimeraDolencia);
 			}
 			
 		}
@@ -996,9 +993,9 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		
 		//frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
 		if (esPrimeraDolencia) {
-			frame.MostrarDatosPaciente(this);
+			MainFrame.MostrarDatosPaciente(this);
 		}else {
-			frame.MostrarDatosPrimeraDolencia(this);
+			MainFrame.MostrarDatosPrimeraDolencia(this);
 		}
 		
 	
@@ -1021,7 +1018,7 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		// TODO Auto-generated method stub
 		//frame.setVisible(true);
 		String strMsg = "¿Está seguro que desea salir?";
-		int jOptionResult = jOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
+		int jOptionResult = JOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
 
 		if ( jOptionResult == JOptionPane.YES_OPTION) {
 			System.exit(0);
@@ -1081,7 +1078,7 @@ public class DatosDolencias extends JPanel implements WindowListener, ActionList
 		
 		if (resultado == false) {
 			jOptionPane.setMessageType(JOptionPane.ERROR_MESSAGE);
-			jOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
+			JOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
 		}
 		return resultado;
 	}

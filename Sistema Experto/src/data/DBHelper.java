@@ -1,12 +1,11 @@
 package data;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.SimpleDateFormat;
+//import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import org.sqlite.SQLiteException;
@@ -1095,7 +1094,7 @@ public class DBHelper {
 					if ( resultSet != null ) {
 						
 						rows = new ArrayList<Diagnostico>();
-						SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+						//SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 						
 						while (  resultSet.next() ) {
 							/*

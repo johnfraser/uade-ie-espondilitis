@@ -1,8 +1,5 @@
 package model;
 
-import java.sql.Date;
-import java.util.Set;
-
 public class Diagnostico 
 {
 	public int id_diagnostico;

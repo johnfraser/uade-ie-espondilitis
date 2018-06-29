@@ -1,7 +1,5 @@
 package front;
 
-import java.awt.Dimension;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -10,22 +8,22 @@ import java.awt.event.WindowListener;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
+import clips.ClipsHandler;
 import data.DBHelper;
 import model.Diagnostico;
-import model.Dolor;
 import model.Estudio;
 import model.Laboratorio;
 
 public class DatosEstudios extends JPanel implements WindowListener, ActionListener{
+	private static final long serialVersionUID = 1L;
+	
 	
 	public static String[] strRadios = { "No", "Si" };
 	public static int cantRadios = 2;
@@ -148,7 +146,7 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 			
 			String strMensaje="El paciente ya se ha realizado el estudio del gen HLAB27.";
 			jOptionPane.setMessageType(JOptionPane.INFORMATION_MESSAGE);
-			jOptionPane.showMessageDialog(frame, strMensaje, "Datos existentes", JOptionPane.INFORMATION_MESSAGE );
+			JOptionPane.showMessageDialog(frame, strMensaje, "Datos existentes", JOptionPane.INFORMATION_MESSAGE );
 
 		}
 		
@@ -256,7 +254,7 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		cmb_estudio_gen_valor = new JComboBox<String>();
 		cmb_estudio_gen_valor.setEditable(false);
 		cmb_estudio_gen_valor.addActionListener(this);
-		DefaultComboBoxModel defaultComboBoxModel_cmb_estudio_gen_valor = new DefaultComboBoxModel();
+		DefaultComboBoxModel<String> defaultComboBoxModel_cmb_estudio_gen_valor = new DefaultComboBoxModel<String>();
 		cmb_estudio_gen_valor.setModel(defaultComboBoxModel_cmb_estudio_gen_valor);
 		
 		for (int i = 0 ; i < cantResultadoGen ; i ++){
@@ -305,7 +303,7 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		cmb_estudio_rx = new JComboBox<String>();
 		cmb_estudio_rx.setEditable(false);
 		cmb_estudio_rx.addActionListener(this);
-		DefaultComboBoxModel defaultComboBoxModel_cmb_estudio_rx = new DefaultComboBoxModel();
+		DefaultComboBoxModel<String> defaultComboBoxModel_cmb_estudio_rx = new DefaultComboBoxModel<String>();
 		cmb_estudio_rx.setModel(defaultComboBoxModel_cmb_estudio_rx);
 		
 		for (int i = 0 ; i < cantResultadoImagenes ; i ++){
@@ -351,7 +349,7 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		cmb_estudio_rmn = new JComboBox<String>();
 		cmb_estudio_rmn.setEditable(false);
 		cmb_estudio_rmn.addActionListener(this);
-		DefaultComboBoxModel defaultComboBoxModel_cmb_estudio_rmn = new DefaultComboBoxModel();
+		DefaultComboBoxModel<String> defaultComboBoxModel_cmb_estudio_rmn = new DefaultComboBoxModel<String>();
 		cmb_estudio_rmn.setModel(defaultComboBoxModel_cmb_estudio_rmn);
 		
 		for (int i = 0 ; i < cantResultadoImagenes ; i ++){
@@ -372,13 +370,13 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 			if (tfl_laboratorio_ERS.getText().isEmpty()) {
 				String strError="Falta ingresar valor de ERS";
 				jOptionPane.setMessageType(JOptionPane.ERROR_MESSAGE);
-				jOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
+				JOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
 				resultado=false;
 			}else {
 				if (!MainFrame.validarTextoNumerico(tfl_laboratorio_ERS.getText())) {
 					String strError="Valor de ERS inválido";
 					jOptionPane.setMessageType(JOptionPane.ERROR_MESSAGE);
-					jOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
+					JOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
 					resultado=false;
 				}
 			}
@@ -544,7 +542,7 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		
 		if ( validar() ) {
 			String strMsg = "Se procesará el diagnóstico. ¿Desea continuar?";
-			int jOptionResult = jOptionPane.showOptionDialog(frame, strMsg, "Atención", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
+			int jOptionResult = JOptionPane.showOptionDialog(frame, strMsg, "Atención", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
 
 			if ( jOptionResult == JOptionPane.YES_OPTION) {		
 
@@ -553,7 +551,7 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 				ProcesarCLIPS();
 
 				//ResultadoDiagnostico resultadoDiagnostico = new ResultadoDiagnostico(frame);
-				frame.MostrarResultadoDiagnostico(this);
+				MainFrame.MostrarResultadoDiagnostico(this);
 
 			}
 		}
@@ -562,7 +560,7 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 	private void btAtras() {
 		
 		//frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
-		frame.MostrarDatosAntecedentes(this,true);
+		MainFrame.MostrarDatosAntecedentes(this,true);
 	
 	}
 	
@@ -594,7 +592,17 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 	
 
 	
-	public void ProcesarCLIPS() {
+	public boolean ProcesarCLIPS() {
+		ClipsHandler clips = new ClipsHandler();
+		
+		Diagnostico diagnostico = clips.correrConsulta(MainFrame.consulta);
+		
+		if(diagnostico != null) {
+			MainFrame.consulta.diagnostico = diagnostico;
+			return true;
+		} else {
+			// welp, show error message
+		}
 		
 		
 		MainFrame.consulta.diagnostico.dolor_lumbar = Diagnostico.DOLOR_LUMBAR_MECANICO;
@@ -602,6 +610,7 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		MainFrame.consulta.diagnostico.enfermedad = Diagnostico.ENFERMEDAD_EspondilitisAnquilosante;
 		MainFrame.consulta.diagnostico.derivacion = Diagnostico.DERIVACION_Gastroenterologo;
 		MainFrame.consulta.diagnostico.estudios_solicitados = Diagnostico.ESTUDIOS_SOLICITADOS_HLAB27;
+		return false;
 		
 	}
 	
@@ -622,7 +631,7 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 	public void windowClosing(WindowEvent arg0) {
 		// TODO Auto-generated method stub
 		String strMsg = "¿Está seguro que desea salir?";
-		int jOptionResult = jOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
+		int jOptionResult = JOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
 
 		if ( jOptionResult == JOptionPane.YES_OPTION) {
 			System.exit(0);

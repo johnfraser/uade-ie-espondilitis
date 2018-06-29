@@ -1,14 +1,11 @@
 package front;
 
-import java.awt.Dimension;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -17,10 +14,11 @@ import javax.swing.JTextField;
 import data.DBHelper;
 import model.AntecedentesFamiliares;
 import model.AntecedentesPaciente;
-import model.Consulta;
 import model.Estudio;
 
 public class ResultadoDiagnostico  extends JPanel implements WindowListener, ActionListener {
+	private static final long serialVersionUID = 1L;
+	
 	
 	public static String[] strDolorlumbarBE = { "nil", "inflamatorio", "mecanico" };
 	public static String[] strDolorlumbarFE = { "No presenta", "Inflamatorio", "Mecánico" };
@@ -329,11 +327,11 @@ public class ResultadoDiagnostico  extends JPanel implements WindowListener, Act
 			GuardarResultados();
 		
 			String strMsg = "El diagnóstico se ha guardado exitosamente.\n¿Desea realizar otro diagóstico?\nSi elige 'No' la aplicación se cerrará.";
-			int jOptionResult = jOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
+			int jOptionResult = JOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
 
 			if ( jOptionResult == JOptionPane.YES_OPTION) {
 		
-				frame.ReiniciarDiagnostico();
+				MainFrame.ReiniciarDiagnostico();
 						
 			}else {
 				System.exit(1);
@@ -394,7 +392,7 @@ public class ResultadoDiagnostico  extends JPanel implements WindowListener, Act
 	public void windowClosing(WindowEvent arg0) {
 		// TODO Auto-generated method stub
 		String strMsg = "¿Está seguro que desea salir?";
-		int jOptionResult = jOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
+		int jOptionResult = JOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
 
 		if ( jOptionResult == JOptionPane.YES_OPTION) {
 			System.exit(0);

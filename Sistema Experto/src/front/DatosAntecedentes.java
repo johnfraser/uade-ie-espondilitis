@@ -1,7 +1,5 @@
 package front;
 
-import java.awt.Dimension;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -10,18 +8,18 @@ import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import data.DBHelper;
 import model.AntecedentesFamiliares;
 import model.AntecedentesPaciente;
 
 
 public class DatosAntecedentes  extends JPanel implements WindowListener, ActionListener{
+	private static final long serialVersionUID = 1L;
 	
+
 	public static String[] strAntecedentesPaciente= { "Colitis",
 			"Dactilitis" ,
 			"Entesitis" ,
@@ -178,7 +176,7 @@ public class DatosAntecedentes  extends JPanel implements WindowListener, Action
 		if (ObtenerAntecedentesExistentes()) {
 			String strMensaje="El paciente cuenta antecedentes cargados en el sistema.";
 			jOptionPane.setMessageType(JOptionPane.INFORMATION_MESSAGE);
-			jOptionPane.showMessageDialog(frame, strMensaje, "Datos existentes", JOptionPane.INFORMATION_MESSAGE );
+			JOptionPane.showMessageDialog(frame, strMensaje, "Datos existentes", JOptionPane.INFORMATION_MESSAGE );
 		}
 		
 		
@@ -384,7 +382,7 @@ public class DatosAntecedentes  extends JPanel implements WindowListener, Action
 		  GuardarAntecedentes();
 		
 		  //DatosEstudios datosEstudios = new DatosEstudios(frame);
-		  frame.MostrarDatosEstudios(this);
+		  MainFrame.MostrarDatosEstudios(this);
 		  
 	}
 	
@@ -392,9 +390,9 @@ public class DatosAntecedentes  extends JPanel implements WindowListener, Action
 		
 		//frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
 		if (esPrimeraDolencia) {
-			frame.MostrarDatosPrimeraDolencia(this);
+			MainFrame.MostrarDatosPrimeraDolencia(this);
 		}else {
-			frame.MostrarDatosSegundaDolencia(this);
+			MainFrame.MostrarDatosSegundaDolencia(this);
 		}
 	
 	}
@@ -413,7 +411,7 @@ public class DatosAntecedentes  extends JPanel implements WindowListener, Action
 		// TODO Auto-generated method stub
 		//frame.setVisible(true);
 		String strMsg = "¿Está seguro que desea salir?";
-		int jOptionResult = jOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
+		int jOptionResult = JOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
 
 		if ( jOptionResult == JOptionPane.YES_OPTION) {
 			System.exit(0);
