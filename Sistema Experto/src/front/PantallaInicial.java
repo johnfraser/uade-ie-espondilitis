@@ -1,19 +1,30 @@
 package front;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.ImageObserver;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.MalformedURLException;
+
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
 public class PantallaInicial extends JPanel {
-	private static final long serialVersionUID = 1L;
-	
 	
 	private MainFrame frame;
 	private Image image;
+	private ImageIcon imageIcon;
 	public JLabel lbl_titulo;
 	public JLabel lbl_titulo_sombra;
 	public int current_x = 0;
@@ -25,7 +36,9 @@ public class PantallaInicial extends JPanel {
 		this.frame = frame;
 		setLayout(null);
 		try {
-		image = javax.imageio.ImageIO.read(new java.net.URL(getClass().getResource("/img/intro3.png"), "intro3.png"));
+			imageIcon = createImageIcon("/img/intro3.png");
+			//image = javax.imageio.ImageIO.read(new java.net.URL(getClass().getResource("/img/intro3.png"), "intro3.png"));
+			image = imageIcon.getImage();
 		}
 		catch (Exception e) {
 			// TODO: handle exception
