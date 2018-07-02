@@ -1,5 +1,9 @@
 package front;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -8,22 +12,24 @@ import java.awt.event.WindowListener;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 import clips.ClipsHandler;
 import data.DBHelper;
 import model.Diagnostico;
+import model.Dolor;
 import model.Estudio;
 import model.Laboratorio;
 
 public class DatosEstudios extends JPanel implements WindowListener, ActionListener{
-	private static final long serialVersionUID = 1L;
-	
 	
 	public static String[] strRadios = { "No", "Si" };
 	public static int cantRadios = 2;
@@ -48,6 +54,7 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 	public JLabel lbl_laboratorio_PCRu;
 	
 	public JLabel lbl_estudio_gen;
+	public JLabel lbl_estudio_gen_l2;
 	public JLabel lbl_estudio_gen_nombre;
 
 	public JLabel lbl_estudio_rx;
@@ -75,7 +82,8 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 	public JComboBox<String> cmb_estudio_rx;
 	public JComboBox<String> cmb_estudio_rmn;
 	
-	
+	public JLabel lbl_estudio_gen_anterior;
+		
 	protected JButton btProcesar;
 	protected JButton btAtras;
 	
@@ -109,13 +117,27 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		current_x = 10;
 		current_y = 10;
 		
+		current_y = current_y + MainFrame.alto_controles ;
+		
 		//Titulo
-		lbl_titulo = new JLabel("Por último, complete la información sobre los estudios del paciente:");
-		lbl_titulo.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X - MainFrame.padding_controles,MainFrame.alto_controles);
+		lbl_titulo = new JLabel("Por último, complete la siguiente información sobre los estudios del paciente");
+		//lbl_titulo.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X - MainFrame.padding_controles,MainFrame.alto_controles);
+		Font font = lbl_titulo.getFont();
+		lbl_titulo.setFont(new Font(font.getFontName(),Font.BOLD,font.getSize() + 4));
+		int w = lbl_titulo.getFontMetrics(lbl_titulo.getFont()).stringWidth(lbl_titulo.getText());
+		lbl_titulo.setBounds(MainFrame.APP_WINDOW_X/2 - w/2,current_y,w,MainFrame.alto_controles);
 		add(lbl_titulo); 
 		
 		current_y = current_y + MainFrame.alto_controles * 2;
 		
+		lbl_estudio_gen_anterior = new JLabel("*El paciente ya se ha realizado el estudio del gen HLAB27 con anterioridad*");
+    	w = lbl_estudio_gen_anterior.getFontMetrics(lbl_estudio_gen_anterior.getFont()).stringWidth(lbl_estudio_gen_anterior.getText());
+    	lbl_estudio_gen_anterior.setBounds(MainFrame.APP_WINDOW_X/2 - w/2,current_y,w,MainFrame.alto_controles);
+    	//lbl_antecedentes_anteriores.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X - MainFrame.padding_controles, MainFrame.alto_controles);
+    	lbl_estudio_gen_anterior.setForeground(Color.blue);
+    	lbl_estudio_gen_anterior.setVisible(false);
+    	add(lbl_estudio_gen_anterior);
+    	
 		cargarLaboratorio();
 		cargarEstudioGEN();
 		cargarEstudioRX();
@@ -123,6 +145,7 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		
 	    current_y = current_y + MainFrame.alto_controles * 2;
 	    
+	    /*
 		btAtras = new JButton("Atrás");
 		btAtras.addActionListener(this);
 		btAtras.setBounds(MainFrame.APP_WINDOW_X / 2 - ( 150 / 2) - 150 ,current_y, 200 , MainFrame.alto_controles);
@@ -132,6 +155,21 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		btProcesar.addActionListener(this);
 		btProcesar.setBounds(MainFrame.APP_WINDOW_X / 2 - ( 150 / 2) + 100 ,current_y, 200, MainFrame.alto_controles);
 		add(btProcesar);
+		*/
+	    
+		btAtras = new JButton(MainFrame.BOTON_ATRAS_TEXTO);
+		btAtras.addActionListener(this);
+		btAtras.setBounds(MainFrame.BOTON_ATRAS_X ,MainFrame.BOTON_ATRAS_Y, MainFrame.BOTONES_ANCHO , MainFrame.alto_controles);
+		add(btAtras);
+		
+		btProcesar = new JButton(MainFrame.BOTON_PROCESAR_TEXTO);
+		btProcesar.addActionListener(this);
+		btProcesar.setForeground(MainFrame.BOTON_PROCESAR_COLOR);
+		btProcesar.setBounds(MainFrame.BOTON_PROCESAR_X , MainFrame.BOTON_PROCESAR_Y, MainFrame.BOTONES_ANCHO , MainFrame.alto_controles);
+		add(btProcesar);
+		
+		
+		
 		
 		cambiarEstadoLaboratorio(false);
 		cambiarEstadoEstudioGEN(mostrarEstudioGenRealizado);
@@ -143,11 +181,12 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		this.setVisible(true);
 		
 		if ( mostrarEstudioGenRealizado ) {
-			
+		/*	
 			String strMensaje="El paciente ya se ha realizado el estudio del gen HLAB27.";
 			jOptionPane.setMessageType(JOptionPane.INFORMATION_MESSAGE);
-			JOptionPane.showMessageDialog(frame, strMensaje, "Datos existentes", JOptionPane.INFORMATION_MESSAGE );
-
+			jOptionPane.showMessageDialog(frame, strMensaje, "Datos existentes", JOptionPane.INFORMATION_MESSAGE );
+			*/
+			lbl_estudio_gen_anterior.setVisible(true);
 		}
 		
 	}
@@ -156,7 +195,7 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		
 		//Laboratorio
 		current_y = current_y + MainFrame.alto_controles * 2;
-		lbl_laboratorio = new JLabel("¿El paciente se hizo analisis ERS y PCR?");
+		lbl_laboratorio = new JLabel("¿Se hizo analisis ERS y PCR?");
 		lbl_laboratorio.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_laboratorio);
 		
@@ -178,19 +217,21 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 	    btgLaboratorio.add(rdb_laboratorio[1]);
 	    
 		current_y = current_y + MainFrame.alto_controles;
-		lbl_laboratorio_ERS = new JLabel("Valor ERS (en mm): ");
+		lbl_laboratorio_ERS = new JLabel("Valor ERS (en mm): ",SwingConstants.RIGHT);
 		lbl_laboratorio_ERS.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_laboratorio_ERS); 	
 		tfl_laboratorio_ERS = new JTextField ();
-		tfl_laboratorio_ERS.setBounds(MainFrame.APP_WINDOW_X / 2,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
+		tfl_laboratorio_ERS.setHorizontalAlignment(SwingConstants.RIGHT);
+		tfl_laboratorio_ERS.setBounds(MainFrame.APP_WINDOW_X / 2,current_y,MainFrame.APP_WINDOW_X / 5 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(tfl_laboratorio_ERS); //, gridBagConstraints);
 		
 		current_y = current_y + MainFrame.alto_controles;
-		lbl_laboratorio_PCR = new JLabel("Valor PCR (en mg/dl): ");
+		lbl_laboratorio_PCR = new JLabel("Valor PCR (en mg/dl): ",SwingConstants.RIGHT);
 		lbl_laboratorio_PCR.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_laboratorio_PCR); 	
 		tfl_laboratorio_PCR = new JTextField ();
-		tfl_laboratorio_PCR.setBounds(MainFrame.APP_WINDOW_X / 2,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
+		tfl_laboratorio_PCR.setHorizontalAlignment(SwingConstants.RIGHT);
+		tfl_laboratorio_PCR.setBounds(MainFrame.APP_WINDOW_X / 2,current_y,MainFrame.APP_WINDOW_X / 5 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(tfl_laboratorio_PCR);
 	}
 	
@@ -206,6 +247,8 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		
 		if (estudio != null) {
 		
+			tieneGen = true;
+			
 			id_estudio_gen_actual = estudio.id_estudio;
 			
 			for (int i = 0; i < cantResultadoGen ; i++) {
@@ -220,8 +263,8 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		
 				
 		current_y = current_y + MainFrame.alto_controles * 2;
-		lbl_estudio_gen = new JLabel("¿El paciente se hizo analisis genético? (HLAB27)");
-		lbl_estudio_gen.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
+		lbl_estudio_gen = new JLabel("¿Se hizo analisis genético? (HLAB27)");
+		lbl_estudio_gen.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2- MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_estudio_gen);
 		
 		rdb_estudio_gen  = new JRadioButton[cantRadios];
@@ -247,14 +290,14 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 	    btgEstudioGen.add(rdb_estudio_gen[1]);
 	    
 		current_y = current_y + MainFrame.alto_controles;
-		lbl_estudio_gen_nombre = new JLabel("           Resultado: ");
+		lbl_estudio_gen_nombre = new JLabel("Resultado: ",SwingConstants.RIGHT);
 		lbl_estudio_gen_nombre.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_estudio_gen_nombre);
 	    
 		cmb_estudio_gen_valor = new JComboBox<String>();
 		cmb_estudio_gen_valor.setEditable(false);
 		cmb_estudio_gen_valor.addActionListener(this);
-		DefaultComboBoxModel<String> defaultComboBoxModel_cmb_estudio_gen_valor = new DefaultComboBoxModel<String>();
+		DefaultComboBoxModel defaultComboBoxModel_cmb_estudio_gen_valor = new DefaultComboBoxModel();
 		cmb_estudio_gen_valor.setModel(defaultComboBoxModel_cmb_estudio_gen_valor);
 		
 		for (int i = 0 ; i < cantResultadoGen ; i ++){
@@ -265,7 +308,8 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		if (mostrarEstudioGenRealizado) {
 			cmb_estudio_gen_valor.setEnabled(true);
 		}
-		cmb_estudio_gen_valor.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio , MainFrame.alto_controles);
+		//cmb_estudio_gen_valor.setBounds(MainFrame.APP_WINDOW_X / 2,current_y, MainFrame.padding_radio , MainFrame.alto_controles);
+		cmb_estudio_gen_valor.setBounds(MainFrame.APP_WINDOW_X / 2,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles,MainFrame.alto_controles);
 		add(cmb_estudio_gen_valor);
 	    
 	}
@@ -274,8 +318,8 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		
 		//Estudio RX
 		current_y = current_y + MainFrame.alto_controles * 2;
-		lbl_estudio_rx = new JLabel("¿El paciente se hizo una radiografía de columna?");
-		lbl_estudio_rx.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
+		lbl_estudio_rx = new JLabel("¿Se hizo una radiografía de columna?");
+		lbl_estudio_rx.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2  - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_estudio_rx);
 		
 		rdb_estudio_rx = new JRadioButton[cantRadios];
@@ -296,14 +340,14 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 	    btgEstudioRX.add(rdb_estudio_rx[1]);
 	    
 		current_y = current_y + MainFrame.alto_controles;
-		lbl_estudio_rx_nombre = new JLabel("           Resultado: ");
+		lbl_estudio_rx_nombre = new JLabel("Resultado: ",SwingConstants.RIGHT);
 		lbl_estudio_rx_nombre.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_estudio_rx_nombre);
 	    
 		cmb_estudio_rx = new JComboBox<String>();
 		cmb_estudio_rx.setEditable(false);
 		cmb_estudio_rx.addActionListener(this);
-		DefaultComboBoxModel<String> defaultComboBoxModel_cmb_estudio_rx = new DefaultComboBoxModel<String>();
+		DefaultComboBoxModel defaultComboBoxModel_cmb_estudio_rx = new DefaultComboBoxModel();
 		cmb_estudio_rx.setModel(defaultComboBoxModel_cmb_estudio_rx);
 		
 		for (int i = 0 ; i < cantResultadoImagenes ; i ++){
@@ -320,8 +364,8 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		
 		//Estudio RX
 		current_y = current_y + MainFrame.alto_controles * 2;
-		lbl_estudio_rmn = new JLabel("¿El paciente se hizo una resonancia magnética de columna?");
-		lbl_estudio_rmn.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
+		lbl_estudio_rmn = new JLabel("¿Se hizo una resonancia magnética de columna?");
+		lbl_estudio_rmn.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_estudio_rmn);
 		
 		rdb_estudio_rmn = new JRadioButton[cantRadios];
@@ -342,14 +386,14 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 	    btgEstudioRMN.add(rdb_estudio_rmn[1]);
 	    
 		current_y = current_y + MainFrame.alto_controles;
-		lbl_estudio_rmn_nombre = new JLabel("           Resultado: ");
+		lbl_estudio_rmn_nombre = new JLabel("Resultado: ",SwingConstants.RIGHT);
 		lbl_estudio_rmn_nombre.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(lbl_estudio_rmn_nombre);
 	    
 		cmb_estudio_rmn = new JComboBox<String>();
 		cmb_estudio_rmn.setEditable(false);
 		cmb_estudio_rmn.addActionListener(this);
-		DefaultComboBoxModel<String> defaultComboBoxModel_cmb_estudio_rmn = new DefaultComboBoxModel<String>();
+		DefaultComboBoxModel defaultComboBoxModel_cmb_estudio_rmn = new DefaultComboBoxModel();
 		cmb_estudio_rmn.setModel(defaultComboBoxModel_cmb_estudio_rmn);
 		
 		for (int i = 0 ; i < cantResultadoImagenes ; i ++){
@@ -370,14 +414,30 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 			if (tfl_laboratorio_ERS.getText().isEmpty()) {
 				String strError="Falta ingresar valor de ERS";
 				jOptionPane.setMessageType(JOptionPane.ERROR_MESSAGE);
-				JOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
+				jOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
 				resultado=false;
 			}else {
-				if (!MainFrame.validarTextoNumerico(tfl_laboratorio_ERS.getText())) {
+				if (!MainFrame.validarTextoFloat(tfl_laboratorio_ERS.getText())) {
 					String strError="Valor de ERS inválido";
 					jOptionPane.setMessageType(JOptionPane.ERROR_MESSAGE);
-					JOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
+					jOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
 					resultado=false;
+				}
+			}
+			
+			if (resultado) {
+				if (tfl_laboratorio_PCR.getText().isEmpty()) {
+					String strError="Falta ingresar valor de PCR";
+					jOptionPane.setMessageType(JOptionPane.ERROR_MESSAGE);
+					jOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
+					resultado=false;
+				}else {
+					if (!MainFrame.validarTextoFloat(tfl_laboratorio_PCR.getText())) {
+						String strError="Valor de PCR inválido";
+						jOptionPane.setMessageType(JOptionPane.ERROR_MESSAGE);
+						jOptionPane.showMessageDialog(frame, strError, "Error", JOptionPane.ERROR_MESSAGE );
+						resultado=false;
+					}
 				}
 			}
 		}
@@ -542,7 +602,7 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		
 		if ( validar() ) {
 			String strMsg = "Se procesará el diagnóstico. ¿Desea continuar?";
-			int jOptionResult = JOptionPane.showOptionDialog(frame, strMsg, "Atención", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
+			int jOptionResult = jOptionPane.showOptionDialog(frame, strMsg, "Atención", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
 
 			if ( jOptionResult == JOptionPane.YES_OPTION) {		
 
@@ -551,7 +611,7 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 				ProcesarCLIPS();
 
 				//ResultadoDiagnostico resultadoDiagnostico = new ResultadoDiagnostico(frame);
-				MainFrame.MostrarResultadoDiagnostico(this);
+				frame.MostrarResultadoDiagnostico(this);
 
 			}
 		}
@@ -560,7 +620,7 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 	private void btAtras() {
 		
 		//frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
-		MainFrame.MostrarDatosAntecedentes(this,true);
+		frame.MostrarDatosAntecedentes(this,true);
 	
 	}
 	
@@ -605,13 +665,13 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 		}
 		
 		
-		MainFrame.consulta.diagnostico.dolor_lumbar = Diagnostico.DOLOR_LUMBAR_MECANICO;
-		MainFrame.consulta.diagnostico.grado_sospecha = Diagnostico.GRADO_SOSPECHA_AltaProbSpax;
-		MainFrame.consulta.diagnostico.enfermedad = Diagnostico.ENFERMEDAD_EspondilitisAnquilosante;
-		MainFrame.consulta.diagnostico.derivacion = Diagnostico.DERIVACION_Gastroenterologo;
-		MainFrame.consulta.diagnostico.estudios_solicitados = Diagnostico.ESTUDIOS_SOLICITADOS_HLAB27;
+		MainFrame.consulta.diagnostico.dolor_lumbar = diagnostico.dolor_lumbar;
+		MainFrame.consulta.diagnostico.grado_sospecha = diagnostico.grado_sospecha;
+		MainFrame.consulta.diagnostico.enfermedad = diagnostico.enfermedad;
+		MainFrame.consulta.diagnostico.derivacion = diagnostico.derivacion;
+		MainFrame.consulta.diagnostico.estudios_solicitados = diagnostico.estudios_solicitados;
 		return false;
-		
+				
 	}
 	
 	
@@ -625,13 +685,14 @@ public class DatosEstudios extends JPanel implements WindowListener, ActionListe
 	@Override
 	public void windowClosed(WindowEvent arg0) {
 		// TODO Auto-generated method stub
+
 	}
 
 	@Override
 	public void windowClosing(WindowEvent arg0) {
 		// TODO Auto-generated method stub
 		String strMsg = "¿Está seguro que desea salir?";
-		int jOptionResult = JOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
+		int jOptionResult = jOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
 
 		if ( jOptionResult == JOptionPane.YES_OPTION) {
 			System.exit(0);

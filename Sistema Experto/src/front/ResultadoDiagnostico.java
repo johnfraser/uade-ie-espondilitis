@@ -1,11 +1,15 @@
 package front;
 
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -14,15 +18,14 @@ import javax.swing.JTextField;
 import data.DBHelper;
 import model.AntecedentesFamiliares;
 import model.AntecedentesPaciente;
+import model.Consulta;
 import model.Estudio;
 
 public class ResultadoDiagnostico  extends JPanel implements WindowListener, ActionListener {
-	private static final long serialVersionUID = 1L;
 	
-	
-	public static String[] strDolorlumbarBE = { "nil", "inflamatorio", "mecanico" };
-	public static String[] strDolorlumbarFE = { "No presenta", "Inflamatorio", "Mecánico" };
-	public static int cantDolorlumbar = 3;
+	public static String[] strDolorlumbarBE = { "nil", "notiene", "inflamatorio", "mecanico" };
+	public static String[] strDolorlumbarFE = { "No presenta", "No tiene" , "Inflamatorio", "Mecánico" };
+	public static int cantDolorlumbar = 4;
 	
 	public static String[] strGradoSospechaBE = { "NoHaySospechaSpax", "HaySospechaSpax", "AltaProbSpax" };
 	public static String[] strGradoSospechaFE = { "No hay sospecha de SPAX", "Hay sospecha de SPAX", "Alta Probabilidad de SPAX" };
@@ -147,25 +150,43 @@ public class ResultadoDiagnostico  extends JPanel implements WindowListener, Act
 		current_x = 10;
 		current_y = 10;
 		
+		current_y = current_y + MainFrame.alto_controles ;
+		
 		//Titulo
-		lbl_titulo = new JLabel("RESULTADO DEL DIAGNÓSTICO:");
-		lbl_titulo.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X - MainFrame.padding_controles,MainFrame.alto_controles);
+		lbl_titulo = new JLabel("RESULTADO DEL DIAGNÓSTICO");
+//		lbl_titulo.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X - MainFrame.padding_controles,MainFrame.alto_controles);
+		Font font = lbl_titulo.getFont();
+		lbl_titulo.setFont(new Font(font.getFontName(),Font.BOLD,font.getSize() + 4));
+		int w = lbl_titulo.getFontMetrics(lbl_titulo.getFont()).stringWidth(lbl_titulo.getText());
+		lbl_titulo.setBounds(MainFrame.APP_WINDOW_X/2 - w/2,current_y,w,MainFrame.alto_controles);
 		add(lbl_titulo); 
 		
-		current_y = current_y + MainFrame.alto_controles * 2;
+		current_y = current_y + MainFrame.alto_controles * 4;
+		current_y = current_y + MainFrame.alto_controles;
 		
 		cargarDatosPaciente();
+		current_y = current_y + MainFrame.alto_controles ;
 		cargarDolorLumbar();
+		current_y = current_y + MainFrame.alto_controles ;
 		cargarGradoSospecha();
+		current_y = current_y + MainFrame.alto_controles ;
 		cargarEnfermedad();
+		current_y = current_y + MainFrame.alto_controles ;
 		cargarDerivacion();
+		current_y = current_y + MainFrame.alto_controles ;
 		cargarEstudioSolicitado();
-		
+				
 		current_y = current_y + MainFrame.alto_controles * 2;
-		
+		/*
 		btFinalizar = new JButton("Finalizar");
 		btFinalizar.addActionListener(this);
 		btFinalizar.setBounds(MainFrame.APP_WINDOW_X / 2 - ( 150 / 2) + 100 ,current_y, 200, MainFrame.alto_controles);
+		add(btFinalizar);
+		*/
+		btFinalizar = new JButton(MainFrame.BOTON_FINALIZAR_TEXTO);
+		btFinalizar.addActionListener(this);
+		btFinalizar.setForeground(MainFrame.BOTON_FINALIZAR_COLOR);
+		btFinalizar.setBounds(MainFrame.BOTON_FINALIZAR_X , MainFrame.BOTON_FINALIZAR_Y, MainFrame.BOTONES_ANCHO , MainFrame.alto_controles);
 		add(btFinalizar);
 		
 		estadoCarga = true;
@@ -186,6 +207,7 @@ public class ResultadoDiagnostico  extends JPanel implements WindowListener, Act
 		tfd_nombre.setBounds(MainFrame.APP_WINDOW_X / 2,current_y,MainFrame.APP_WINDOW_X / 2 - MainFrame.padding_controles, MainFrame.alto_controles);
 		add(tfd_nombre); //, gridBagConstraints);
 		
+		current_y = current_y + MainFrame.alto_controles ;
 		
 		//Apellido
 		current_y = current_y + MainFrame.alto_controles;
@@ -327,11 +349,11 @@ public class ResultadoDiagnostico  extends JPanel implements WindowListener, Act
 			GuardarResultados();
 		
 			String strMsg = "El diagnóstico se ha guardado exitosamente.\n¿Desea realizar otro diagóstico?\nSi elige 'No' la aplicación se cerrará.";
-			int jOptionResult = JOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
+			int jOptionResult = jOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
 
 			if ( jOptionResult == JOptionPane.YES_OPTION) {
 		
-				MainFrame.ReiniciarDiagnostico();
+				frame.ReiniciarDiagnostico();
 						
 			}else {
 				System.exit(1);
@@ -360,6 +382,8 @@ public class ResultadoDiagnostico  extends JPanel implements WindowListener, Act
 				}
 			}
 		}
+		
+		dbHelper.deleteEstudios(id_paciente_actual);
 		
 		if (MainFrame.consulta.estudio_gen != null) {
 			
@@ -392,7 +416,7 @@ public class ResultadoDiagnostico  extends JPanel implements WindowListener, Act
 	public void windowClosing(WindowEvent arg0) {
 		// TODO Auto-generated method stub
 		String strMsg = "¿Está seguro que desea salir?";
-		int jOptionResult = JOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
+		int jOptionResult = jOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
 
 		if ( jOptionResult == JOptionPane.YES_OPTION) {
 			System.exit(0);

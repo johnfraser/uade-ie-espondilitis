@@ -1,19 +1,34 @@
 package front;
 
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
+import clips.ClipsHandler;
 import model.Consulta;
+import model.Diagnostico;
 
 public class MainFrame extends JFrame{
-	private static final long serialVersionUID = 1L;
-	
 	public static final String APP_VERSION = "1.0"; 
 	public static final String APP_NAME = "Sistema de Diagnóstico"; 
+	
+	public static final boolean MOSTRAR_INTRO = true;
 	
 	public static final int alto_controles = 20;
 	public static final int ancho_controles = 500;
@@ -21,11 +36,39 @@ public class MainFrame extends JFrame{
 	public static final int padding_radio = 250;
 	
 	public static final int APP_WINDOW_X = 640;
-	public static final int APP_WINDOW_Y = 640;
+	public static final int APP_WINDOW_Y = 720;
+	
+	//public static final int BOTON_SIGUIENTE_X = APP_WINDOW_X / 2;
+	public static final int BOTON_SIGUIENTE_X = MainFrame.APP_WINDOW_X / 2 - ( MainFrame.BOTONES_ANCHO / 2) + MainFrame.BOTONES_ANCHO;
+	public static final int BOTON_SIGUIENTE_Y = APP_WINDOW_Y - alto_controles * 5;
+	public static final String BOTON_SIGUIENTE_TEXTO = "Siguiente > ";
+	
+	public static final int BOTON_ATRAS_X = MainFrame.APP_WINDOW_X / 2 - ( MainFrame.BOTONES_ANCHO / 2) - MainFrame.BOTONES_ANCHO;
+	public static final int BOTON_ATRAS_Y = APP_WINDOW_Y - alto_controles * 5;
+	public static final String BOTON_ATRAS_TEXTO = " < Atrás";
+	
+	public static final int BOTON_PROCESAR_X = MainFrame.APP_WINDOW_X / 2 - ( MainFrame.BOTONES_ANCHO / 2) + MainFrame.BOTONES_ANCHO;
+	public static final int BOTON_PROCESAR_Y = APP_WINDOW_Y - alto_controles * 5;
+	public static final String BOTON_PROCESAR_TEXTO = "Procesar";
+	public static final Color BOTON_PROCESAR_COLOR = Color.black;
+	
+	public static final int BOTON_FINALIZAR_X = MainFrame.APP_WINDOW_X / 2 - ( MainFrame.BOTONES_ANCHO / 2);
+	public static final int BOTON_FINALIZAR_Y = APP_WINDOW_Y - alto_controles * 5;
+	public static final String BOTON_FINALIZAR_TEXTO = "Finalizar";
+	public static final Color BOTON_FINALIZAR_COLOR = Color.black;
+
+	public static final int BOTON_VOLVER_X = MainFrame.APP_WINDOW_X / 2 - ( MainFrame.BOTONES_ANCHO / 2);
+	public static final int BOTON_VOLVER_Y = APP_WINDOW_Y - alto_controles * 5;
+	public static final String BOTON_VOLVER_TEXTO = "Volver";
+	public static final Color BOTON_VOLVER_COLOR = Color.black;
+	
+	
+	public static final int BOTONES_ANCHO = 150;
 	
 	private static MainFrame frame;
 	
 	//private SistemaDiagnostico sistemaDiagnostico;
+	private static PantallaInicial pantallaInicial; 
 	private static DatosPaciente datosPaciente; 
 	private static DatosDolencias datosDolencia1;
 	private static DatosDolencias datosDolencia2;
@@ -35,6 +78,10 @@ public class MainFrame extends JFrame{
 	private static ResultadosAnteriores resultadosAnteriores;
 	
 	public static Consulta consulta;
+	
+	private static Timer pantalla_inicio_timer;
+	private static int pantalla_inicio_counter = 10;
+	private static int pantalla_inicio_delay = 200;
 		 
 	public MainFrame() {
 		 super(APP_NAME + " "+ APP_VERSION);
@@ -47,6 +94,7 @@ public class MainFrame extends JFrame{
         //creating and showing this application's GUI.
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
+            	
                 createAndShowGUI();
             }
         });			
@@ -55,14 +103,29 @@ public class MainFrame extends JFrame{
 	
     private static void createAndShowGUI() {
     	
-    	
+    	/*
+    	ClipsHandler clips = new ClipsHandler();
+		
+		Diagnostico diagnostico = clips.correrConsulta(MainFrame.consulta);
+    	*/
     	
         //Create and set up the window.
         frame = new MainFrame();
-        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        //frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         
-        MostrarDatosPaciente(null);
-
+        //MostrarDatosPaciente(null);
+        
+        frame.setResizable(false);
+        
+        if (MOSTRAR_INTRO) {
+        	frame.setUndecorated(true);
+        	MostrarPantallaInicial();	
+        }else {
+        	frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        	MostrarDatosPaciente(null);
+        }
+        
+        
         frame.setSize(APP_WINDOW_X, APP_WINDOW_Y);		
    		
    		Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
@@ -79,15 +142,66 @@ public class MainFrame extends JFrame{
        
         frame.setVisible(true);
         
+        
+    }
+    
+    public static void MostrarPantallaInicial() {
+    	
+    	removeAllWindowListeners();
+    	
+    	frame.getContentPane().removeAll();
+    	pantallaInicial = new PantallaInicial(frame);
+    	pantallaInicial.setVisible(true);
+    	frame.getContentPane().add(pantallaInicial);
+    	frame.repaint();
+    	frame.revalidate();
+
+        ActionListener taskPerformer = new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+            	
+            	if ( pantalla_inicio_counter == 0) {
+            		pantalla_inicio_timer.stop();
+            		removeAllWindowListeners();
+                	
+                	frame.getContentPane().removeAll();
+                	pantallaInicial = null;
+                	frame.dispose();
+                	frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+                	frame.setUndecorated(false);
+                    MostrarDatosPaciente(null);
+                    frame.setVisible(true);
+                    
+            	}else {
+            		pantalla_inicio_counter--;
+            	}
+            	
+            	
+            }
+        };
+        pantalla_inicio_timer = new Timer(pantalla_inicio_delay, taskPerformer);
+        pantalla_inicio_timer.setInitialDelay(0);
+        pantalla_inicio_timer.start();
+    	
+    	
+    	
+    			
+    	
     }
     
     public static void MostrarDatosPaciente(JPanel panel_anterior) {
     	
     	removeAllWindowListeners();
     	
+    	/*
     	if ( panel_anterior != null) {
-    		panel_anterior.setVisible(false);
+    		//panel_anterior.setVisible(false);
     	}
+    	*/
+    	
+    	datosDolencia1 = null;
+    	datosDolencia2 = null;
+    	datosAntecedentes = null;
+    	datosEstudios = null;
     	
     	if ( datosPaciente == null) {
     		datosPaciente = new DatosPaciente(frame);
@@ -106,6 +220,11 @@ public class MainFrame extends JFrame{
     public static void MostrarDatosPrimeraDolencia(JPanel panel_anterior) {
 
     	removeAllWindowListeners();
+    	
+    	datosDolencia1 = null;
+    	datosDolencia2 = null;
+    	datosAntecedentes = null;
+    	datosEstudios = null;
     	
     	if ( panel_anterior != null) {
     		panel_anterior.setVisible(false);
@@ -129,6 +248,10 @@ public class MainFrame extends JFrame{
     public static void MostrarDatosSegundaDolencia(JPanel panel_anterior) {
 
     	removeAllWindowListeners();
+    	
+    	datosDolencia2 = null;
+    	datosAntecedentes = null;
+    	datosEstudios = null;
     	
     	if ( panel_anterior != null) {
     		panel_anterior.setVisible(false);
@@ -155,6 +278,9 @@ public class MainFrame extends JFrame{
     	
     	removeAllWindowListeners();
     	
+    	datosAntecedentes = null;
+    	datosEstudios = null;
+    	
     	if ( panel_anterior != null) {
     		panel_anterior.setVisible(false);
     	}
@@ -177,6 +303,8 @@ public class MainFrame extends JFrame{
     public static void MostrarDatosEstudios(JPanel panel_anterior) {
     	
     	removeAllWindowListeners();
+    	
+    	datosEstudios = null;
     	
     	if ( panel_anterior != null) {
     		panel_anterior.setVisible(false);
@@ -281,6 +409,20 @@ public class MainFrame extends JFrame{
 		 
 	      try {
 	         Integer.parseInt(text);
+	         return true;
+	      } catch (NumberFormatException e) {
+	         return false;
+	      }
+	  }
+	 
+	 public static final boolean validarTextoFloat(String text) {
+		 
+		 if (text.length() == 0) {
+			 return true;
+		 }
+		 
+	      try {
+	         Float.parseFloat(text);
 	         return true;
 	      } catch (NumberFormatException e) {
 	         return false;

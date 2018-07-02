@@ -17,7 +17,6 @@ public class Dolor {
 	public static final String ORIGEN_DOLOR_malapostura = "malapostura";
 	public static final String ORIGEN_DOLOR_desconocido = "desconocido";
 	
-	public static final String DESPIERTA_nil= "nil";
 	public static final String DESPIERTA_no = "no";
 	public static final String DESPIERTA_si = "si";
 	

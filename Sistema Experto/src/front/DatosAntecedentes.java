@@ -1,5 +1,9 @@
 package front;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -8,18 +12,18 @@ import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import data.DBHelper;
 import model.AntecedentesFamiliares;
 import model.AntecedentesPaciente;
 
 
 public class DatosAntecedentes  extends JPanel implements WindowListener, ActionListener{
-	private static final long serialVersionUID = 1L;
 	
-
 	public static String[] strAntecedentesPaciente= { "Colitis",
 			"Dactilitis" ,
 			"Entesitis" ,
@@ -83,6 +87,8 @@ public class DatosAntecedentes  extends JPanel implements WindowListener, Action
 	public JCheckBox chk_antecedentes_paciente[];
 	public JCheckBox chk_antecedentes_familiares[];
 	
+	public JLabel lbl_antecedentes_anteriores;
+	
 	protected JButton btSiguiente;
 	protected JButton btAtras;
 	
@@ -113,12 +119,28 @@ public class DatosAntecedentes  extends JPanel implements WindowListener, Action
 		current_x = 10;
 		current_y = 10;
 		
+		current_y = current_y + MainFrame.alto_controles ;
+		
 		//Titulo
-		lbl_titulo = new JLabel("Por favor tilde los antecedentes que correspondan:");
-		lbl_titulo.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X - MainFrame.padding_controles,MainFrame.alto_controles);
+		lbl_titulo = new JLabel("Por favor seleccione los antecedentes que correspondan");
+		//lbl_titulo.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X - MainFrame.padding_controles,MainFrame.alto_controles);
+		Font font = lbl_titulo.getFont();
+		lbl_titulo.setFont(new Font(font.getFontName(),Font.BOLD,font.getSize() + 4));
+		int w = lbl_titulo.getFontMetrics(lbl_titulo.getFont()).stringWidth(lbl_titulo.getText());
+		lbl_titulo.setBounds(MainFrame.APP_WINDOW_X/2 - w/2,current_y,w,MainFrame.alto_controles);
 		add(lbl_titulo); 
 		
 		current_y = current_y + MainFrame.alto_controles * 2;
+		
+    	lbl_antecedentes_anteriores = new JLabel("*El paciente ya cuenta con antecedentes cargados en el sistema*");
+    	w = lbl_antecedentes_anteriores.getFontMetrics(lbl_antecedentes_anteriores.getFont()).stringWidth(lbl_antecedentes_anteriores.getText());
+    	lbl_antecedentes_anteriores.setBounds(MainFrame.APP_WINDOW_X/2 - w/2,current_y,w,MainFrame.alto_controles);
+    	//lbl_antecedentes_anteriores.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X - MainFrame.padding_controles, MainFrame.alto_controles);
+    	lbl_antecedentes_anteriores.setForeground(Color.blue);
+    	lbl_antecedentes_anteriores.setVisible(false);
+    	add(lbl_antecedentes_anteriores);
+    	
+    	current_y = current_y + MainFrame.alto_controles;
 		
 		//Antecedentes Paciente
 		current_y = current_y + MainFrame.alto_controles;
@@ -154,7 +176,17 @@ public class DatosAntecedentes  extends JPanel implements WindowListener, Action
 
 		
 	    current_y = current_y + MainFrame.alto_controles * 2;
-	    
+	    /*
+    	lbl_antecedentes_anteriores = new JLabel("*El paciente cuenta antecedentes cargados en el sistema*");
+    	w = lbl_antecedentes_anteriores.getFontMetrics(lbl_antecedentes_anteriores.getFont()).stringWidth(lbl_antecedentes_anteriores.getText());
+    	lbl_antecedentes_anteriores.setBounds(MainFrame.APP_WINDOW_X/2 - w/2,current_y,w,MainFrame.alto_controles);
+    	//lbl_antecedentes_anteriores.setBounds(current_x,current_y,MainFrame.APP_WINDOW_X - MainFrame.padding_controles, MainFrame.alto_controles);
+    	lbl_antecedentes_anteriores.setForeground(Color.blue);
+    	lbl_antecedentes_anteriores.setVisible(false);
+    	add(lbl_antecedentes_anteriores);
+    	*/
+	   
+	    /*
 		btAtras = new JButton("Atrás");
 		btAtras.addActionListener(this);
 		btAtras.setBounds(MainFrame.APP_WINDOW_X / 2 - ( 150 / 2) - 150 ,current_y, 200 , MainFrame.alto_controles);
@@ -164,6 +196,17 @@ public class DatosAntecedentes  extends JPanel implements WindowListener, Action
 		btSiguiente.addActionListener(this);
 		btSiguiente.setBounds(MainFrame.APP_WINDOW_X / 2 - ( 150 / 2) + 100 ,current_y, 200, MainFrame.alto_controles);
 		add(btSiguiente);
+		*/
+		btAtras = new JButton(MainFrame.BOTON_ATRAS_TEXTO);
+		btAtras.addActionListener(this);
+		btAtras.setBounds(MainFrame.BOTON_ATRAS_X ,MainFrame.BOTON_ATRAS_Y, MainFrame.BOTONES_ANCHO , MainFrame.alto_controles);
+		add(btAtras);
+		
+	    btSiguiente = new JButton(MainFrame.BOTON_SIGUIENTE_TEXTO);
+		btSiguiente.addActionListener(this);
+		btSiguiente.setBounds(MainFrame.BOTON_SIGUIENTE_X , MainFrame.BOTON_SIGUIENTE_Y, MainFrame.BOTONES_ANCHO , MainFrame.alto_controles);
+		add(btSiguiente);
+		
 		
 		LimpiarCheckBoxes();
 		
@@ -174,10 +217,12 @@ public class DatosAntecedentes  extends JPanel implements WindowListener, Action
 		
 		
 		if (ObtenerAntecedentesExistentes()) {
-			String strMensaje="El paciente cuenta antecedentes cargados en el sistema.";
-			jOptionPane.setMessageType(JOptionPane.INFORMATION_MESSAGE);
-			JOptionPane.showMessageDialog(frame, strMensaje, "Datos existentes", JOptionPane.INFORMATION_MESSAGE );
+		//	String strMensaje="El paciente cuenta antecedentes cargados en el sistema.";
+		//	jOptionPane.setMessageType(JOptionPane.INFORMATION_MESSAGE);
+		//	jOptionPane.showMessageDialog(frame, strMensaje, "Datos existentes", JOptionPane.INFORMATION_MESSAGE );
+			lbl_antecedentes_anteriores.setVisible(true);
 		}
+		
 		
 		
 	}
@@ -382,18 +427,18 @@ public class DatosAntecedentes  extends JPanel implements WindowListener, Action
 		  GuardarAntecedentes();
 		
 		  //DatosEstudios datosEstudios = new DatosEstudios(frame);
-		  MainFrame.MostrarDatosEstudios(this);
+		  frame.MostrarDatosEstudios(this);
 		  
 	}
 	
 	private void btAtras() {
 		
 		//frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
-		if (esPrimeraDolencia) {
-			MainFrame.MostrarDatosPrimeraDolencia(this);
-		}else {
-			MainFrame.MostrarDatosSegundaDolencia(this);
-		}
+	//	if (esPrimeraDolencia) {
+			frame.MostrarDatosPrimeraDolencia(this);
+	//	}else {
+	//		frame.MostrarDatosSegundaDolencia(this);
+	//	}
 	
 	}
 
@@ -410,18 +455,19 @@ public class DatosAntecedentes  extends JPanel implements WindowListener, Action
 	public void windowClosed(WindowEvent arg0) {
 		// TODO Auto-generated method stub
 		//frame.setVisible(true);
-		String strMsg = "¿Está seguro que desea salir?";
-		int jOptionResult = JOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
 
-		if ( jOptionResult == JOptionPane.YES_OPTION) {
-			System.exit(0);
-		}
 	}
 
 	@Override
 	public void windowClosing(WindowEvent arg0) {
 		// TODO Auto-generated method stub
 		//frame.setVisible(true);
+		String strMsg = "¿Está seguro que desea salir?";
+		int jOptionResult = jOptionPane.showOptionDialog(frame, strMsg, "Consulta", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,null );
+
+		if ( jOptionResult == JOptionPane.YES_OPTION) {
+			System.exit(0);
+		}
 	}
 
 

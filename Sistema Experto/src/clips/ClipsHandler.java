@@ -7,6 +7,13 @@ import CLIPSJNI.Environment;
 import CLIPSJNI.FactAddressValue;
 import CLIPSJNI.MultifieldValue;
 import CLIPSJNI.Router;
+
+/*
+import net.sf.clipsrules.jni.Environment;
+import net.sf.clipsrules.jni.FactAddressValue;
+import net.sf.clipsrules.jni.MultifieldValue;
+import net.sf.clipsrules.jni.Router;
+*/
 import model.AntecedentesFamiliares;
 import model.AntecedentesPaciente;
 import model.Consulta;
@@ -37,19 +44,37 @@ public class ClipsHandler {
 	}
 
 	public Diagnostico correrConsulta(Consulta consulta) {
+		
 		agregarPaciente(consulta.paciente);
 
 		agregarDolor(consulta.dolor1);
-		agregarDolor(consulta.dolor2);
+		
+		if ( consulta.dolor2 != null) {
+			agregarDolor(consulta.dolor2);
+		}
+		
+		if ( consulta.antecedentes_paciente != null) {
+			agregarAntecedentesPaciente(consulta.antecedentes_paciente);
+		}
+		
+		if ( consulta.antecedentes_familiares != null) {
+			agregarAntecedentesFamiliares(consulta.antecedentes_familiares);
+		}
 
-		agregarAntecedentesPaciente(consulta.antecedentes_paciente);
-		agregarAntecedentesFamiliares(consulta.antecedentes_familiares);
+		if ( consulta.estudio_gen != null) {
+			agregarEstudio(consulta.estudio_gen);
+		}
+		
+		if ( consulta.estudio_rmn != null) {
+			agregarEstudio(consulta.estudio_rmn);
+		}
+		if ( consulta.estudio_rx != null) {
+			agregarEstudio(consulta.estudio_rx);
+		}
 
-		agregarEstudio(consulta.estudio_gen);
-		agregarEstudio(consulta.estudio_rmn);
-		agregarEstudio(consulta.estudio_rx);
-
-		agregarLaboratorio(consulta.laboratorio);
+		if ( consulta.laboratorio != null) {
+			agregarLaboratorio(consulta.laboratorio);
+		}
 
 		agregarDiagnostico(consulta.paciente.id_paciente, consulta.dolor1.id_diagnostico,
 				consulta.paciente.ultima_modificacion);

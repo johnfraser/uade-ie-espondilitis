@@ -5,7 +5,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-//import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import org.sqlite.SQLiteException;
@@ -1194,6 +1193,63 @@ public class DBHelper {
 		
 	}
 	
+	
+	public void deleteEstudios(int parm_id_paciente) {
+		
+		Connection connection = null;
+		Statement statement = null;
+		String deleteSQL;
+		deleteSQL = "DELETE FROM "
+				+ TABLE_Estudios_NAME 
+				+ " WHERE " 
+				+ TABLE_Estudios_id_paciente 
+				+ " = " 
+				+ String.valueOf(parm_id_paciente)
+				+ " ;";
+		try {
+
+			connection = getNewConnection();
+
+			if (connection!=null) {
+
+				connection.setAutoCommit(false);
+				statement = connection.createStatement();
+				
+				if ( statement != null ) {
+
+						statement.executeUpdate(deleteSQL);
+						connection.commit();
+				}
+					
+			}
+				
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			
+			if ( statement != null) {
+				try {
+					statement.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			if (connection != null) {
+				try { 
+					connection.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			}
+		}
+		
+	}
+	
 	public void test() {
 		
 		
@@ -1201,15 +1257,15 @@ public class DBHelper {
 		
 	//	InsertPaciente(p);
 		
-		Paciente b = getPaciente(30303303);
-		
+		// Paciente b = getPaciente(30303303);
+		/*
 		System.out.println(b.id_paciente);
 		System.out.println(b.nombre);
 		System.out.println(b.apellido);
 		System.out.println(b.dni);
 		System.out.println(b.edad);
 		System.out.println(b.sexo);
-		
+		*/
 		/*
 		int i = -1;
 		i = getUltimoId(TABLE_Diagnostico_NAME, TABLE_Diagnostico_id_paciente);
