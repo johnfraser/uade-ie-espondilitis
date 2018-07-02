@@ -22,9 +22,10 @@ public class ClipsHandler {
 	private Router router;
 
 	public ClipsHandler() {
+		System.out.println("\n--- CLIPS INIT ---\n");
 		env = new Environment();
 
-		router = new Router("router");
+		router = new ClipsRouter();
 		env.addRouter(router);
 
 		env.watch(Environment.FACTS);
@@ -55,9 +56,9 @@ public class ClipsHandler {
 		
 		Diagnostico diag = new Diagnostico(consulta.dolor1.id_diagnostico, consulta.paciente.id_paciente);
 		
-		System.out.println("--- CLIPS START ---");
+		System.out.println("\n--- CLIPS START ---\n");
 		env.run();
-		System.out.println("--- CLIPS DONE ---");
+		System.out.println("\n--- CLIPS DONE ---\n");
 
 		MultifieldValue pv = (MultifieldValue) env.eval("(find-all-facts((?J diagnostico))TRUE)");
 		try {
